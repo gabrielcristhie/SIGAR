@@ -8,7 +8,6 @@ const LoginModal = () => {
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
 
-  // Fechar modal com ESC
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape' && isLoginModalOpen) {
@@ -18,7 +17,6 @@ const LoginModal = () => {
 
     if (isLoginModalOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      // Evitar scroll do body quando modal está aberto
       document.body.style.overflow = 'hidden';
     }
 
@@ -50,7 +48,6 @@ const LoginModal = () => {
     if (!result.success) {
       setLocalError(result.error || 'Erro ao fazer login');
     } else {
-      // Login bem-sucedido, limpar formulário
       setUsername('');
       setPassword('');
     }

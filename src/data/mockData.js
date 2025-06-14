@@ -10,7 +10,13 @@ export const riskAreasData = {
         corMapa: "red",
         opacidadeMapa: 0.5,
         raioMapa: 500,
-        coordenadas: { lat: -16.6869, lng: -49.2648 },
+        coordenadas: [
+            [-16.6869, -49.2648],
+            [-16.6850, -49.2630],
+            [-16.6830, -49.2650],
+            [-16.6840, -49.2670],
+            [-16.6860, -49.2665]
+        ],
         responsavelDC: "Agente Silva (Mat. 12345)",
         dataCadastro: "15/03/2023",
         ultimaAtualizacao: "01/06/2025",
@@ -41,7 +47,12 @@ export const riskAreasData = {
         corMapa: "orange",
         opacidadeMapa: 0.5,
         raioMapa: 800,
-        coordenadas: { lat: -16.8223, lng: -49.2470 },
+        coordenadas: [
+            [-16.8223, -49.2470],
+            [-16.8200, -49.2450],
+            [-16.8180, -49.2480],
+            [-16.8210, -49.2490]
+        ],
         responsavelDC: "Agente Oliveira (Mat. 54321)",
         dataCadastro: "20/07/2022",
         ultimaAtualizacao: "10/05/2025",
@@ -69,7 +80,12 @@ export const riskAreasData = {
         corMapa: "yellow",
         opacidadeMapa: 0.5,
         raioMapa: 300,
-        coordenadas: { lat: -18.1686, lng: -47.9459 },
+        coordenadas: [
+            [-18.1686, -47.9459],
+            [-18.1670, -47.9440],
+            [-18.1660, -47.9465],
+            [-18.1675, -47.9475]
+        ],
         responsavelDC: "Agente Santos (Mat. 67890)",
         dataCadastro: "02/02/2024",
         ultimaAtualizacao: "02/02/2024",
@@ -88,7 +104,13 @@ export const riskAreasData = {
         corMapa: "red",
         opacidadeMapa: 0.5,
         raioMapa: 600,
-        coordenadas: { lat: -17.7986, lng: -50.9289 },
+        coordenadas: [
+            [-17.7986, -50.9289],
+            [-17.7970, -50.9270],
+            [-17.7950, -50.9295],
+            [-17.7965, -50.9305],
+            [-17.7980, -50.9300]
+        ],
         responsavelDC: "Agente Pereira (Mat. 10112)",
         dataCadastro: "10/09/2021",
         ultimaAtualizacao: "15/04/2025",

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
+import CadastroAreaModal from './CadastroAreaModal';
 
 const Sidebar = ({ isOpen }) => {
   const { toggleLoginModal, isAuthenticated, user } = useAppStore();
+  const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
 
   const handleLoginModalOpen = (actionTitle) => {
     toggleLoginModal(true, actionTitle);
@@ -11,8 +13,11 @@ const Sidebar = ({ isOpen }) => {
   const handleAuthenticatedAction = (actionTitle) => {
     console.log('🔘 Botão clicado:', actionTitle, 'Autenticado:', isAuthenticated);
     if (isAuthenticated) {
-      // TODO: Implementar ações reais para usuários autenticados
-      alert(`Funcionalidade "${actionTitle}" será implementada em breve.`);
+      if (actionTitle === 'Incluir Área de Risco') {
+        setIsCadastroModalOpen(true);
+      } else {
+        alert(`Funcionalidade "${actionTitle}" será implementada em breve.`);
+      }
     } else {
       console.log('🔐 Abrindo modal de login para:', actionTitle);
       toggleLoginModal(true, actionTitle);
@@ -101,6 +106,11 @@ const Sidebar = ({ isOpen }) => {
           <p>Universidade Federal de Goiás</p>
         </div>
       </div>
+      
+      <CadastroAreaModal 
+        isOpen={isCadastroModalOpen} 
+        onClose={() => setIsCadastroModalOpen(false)} 
+      />
     </aside>
   );
 };

@@ -37,80 +37,89 @@ const InfoPanel = () => {
           <i className="fas fa-times text-2xl"></i>
         </button>
       </div>
-      <div className="space-y-3 text-sm text-gray-700 max-h-[calc(100%-60px)] overflow-y-auto pr-2">
-        <div className={`p-3 rounded-lg border ${selectedArea.corNivelTailwind || 'border-gray-300'} mb-4`}>
-          <p className="font-semibold text-lg">
-            {selectedArea.tipoRisco || <em className="text-gray-500">Não informado</em>}
-          </p>
-          <p>
-            <strong className="text-gray-900">Nível de Ameaça:</strong> 
-            {selectedArea.nivelAmeaca || <em className="text-gray-500">Não informado</em>}
-          </p>
+      {isInfoPanelOpen && (
+        <div className="space-y-3 text-sm text-gray-700 max-h-[calc(100%-60px)] overflow-y-auto pr-2">
+          <div className={`p-3 rounded-lg border ${selectedArea.corNivelTailwind || 'border-gray-300'} mb-4`}>
+            <p className="font-semibold text-lg">
+              {selectedArea.tipoRisco || <em className="text-gray-500">Não informado</em>}
+            </p>
+            <p>
+              <strong className="text-gray-900">Nível de Ameaça:</strong> 
+              {selectedArea.nivelAmeaca || <em className="text-gray-500">Não informado</em>}
+            </p>
+          </div>
+          
+          <div className="space-y-2">
+            {formatField("Município", selectedArea.municipio)}
+            {formatField("Bairro/Localidade", selectedArea.bairro)}
+            {formatField("Responsável DC", selectedArea.responsavelDC)}
+            {formatField("Data Cadastro", selectedArea.dataCadastro)}
+            {formatField("Última Atualização", selectedArea.ultimaAtualizacao)}
+            {formatField("Coordenada Latitude", selectedArea.latitude)}
+            {formatField("Coordenada Longitude", selectedArea.longitude)}
+            {formatField("Área (m²)", selectedArea.area)}
+            {formatField("Altimetria", selectedArea.altimetria)}
+            {formatField("Tipo de Solo", selectedArea.tipoSolo)}
+            {formatField("Uso do Solo", selectedArea.usoSolo)}
+            {formatField("Situação Legal", selectedArea.situacaoLegal)}
+            
+            <hr className="my-3" />
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Descrição Detalhada</h3>
+            <p className="text-justify">
+              {selectedArea.descricao || <em className="text-gray-500">Não informado</em>}
+            </p>
+            
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Fatores Condicionantes</h3>
+            {formatField("Naturais", selectedArea.fatoresNaturais)}
+            {formatField("Antrópicos", selectedArea.fatoresAntropicos)}
+            
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Evidências de Instabilidade</h3>
+            <p>{selectedArea.evidencias || <em className="text-gray-500">Não informado</em>}</p>
+            
+            <hr className="my-3" />
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Impactos e Vulnerabilidades</h3>
+            {formatField("População Exposta", selectedArea.populacaoExposta)}
+            {formatField("Edificações Expostas", selectedArea.edificacoesExpostas)}
+            {formatField("Infraestrutura Crítica", selectedArea.infraestruturaExposta)}
+            
+            <hr className="my-3" />
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Histórico de Incidentes</h3>
+            {selectedArea.historicoIncidentes && selectedArea.historicoIncidentes.length > 0 ? (
+              <ul className="list-disc list-inside pl-2 space-y-1">
+                {selectedArea.historicoIncidentes.map((inc, index) => (
+                  <li key={index}>
+                    <strong>{inc.data}:</strong> {inc.descricao}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p><em className="text-gray-500">Nenhum incidente registrado.</em></p>
+            )}
+            
+            <hr className="my-3" />
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Monitoramento e Ações</h3>
+            {formatField("Ações Mitigadoras Existentes", selectedArea.acoesMitigadoras)}
+            {formatField("Medidas Preventivas Recomendadas", selectedArea.medidasRecomendadas)}
+            {formatField("Status do Monitoramento", selectedArea.statusMonitoramento)}
+            
+            <hr className="my-3" />
+            <h3 className="font-semibold text-md text-gray-900 mt-3">Anexos</h3>
+            {selectedArea.anexos && selectedArea.anexos.length > 0 ? (
+              <ul className="list-disc list-inside pl-2 space-y-1">
+                {selectedArea.anexos.map((anx, index) => (
+                  <li key={index}>
+                    <a href={anx.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                      {anx.nome} <i className="fas fa-external-link-alt text-xs"></i>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p><em className="text-gray-500">Nenhum anexo disponível.</em></p>
+            )}
+          </div>
         </div>
-        
-        <div className="space-y-2">
-          {formatField("Município", selectedArea.municipio)}
-          {formatField("Bairro/Localidade", selectedArea.bairro)}
-          {formatField("Responsável DC", selectedArea.responsavelDC)}
-          {formatField("Data Cadastro", selectedArea.dataCadastro)}
-          {formatField("Última Atualização", selectedArea.ultimaAtualizacao)}
-          
-          <hr className="my-3" />
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Descrição Detalhada</h3>
-          <p className="text-justify">
-            {selectedArea.descricao || <em className="text-gray-500">Não informado</em>}
-          </p>
-          
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Fatores Condicionantes</h3>
-          {formatField("Naturais", selectedArea.fatoresNaturais)}
-          {formatField("Antrópicos", selectedArea.fatoresAntropicos)}
-          
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Evidências de Instabilidade</h3>
-          <p>{selectedArea.evidencias || <em className="text-gray-500">Não informado</em>}</p>
-          
-          <hr className="my-3" />
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Impactos e Vulnerabilidades</h3>
-          {formatField("População Exposta", selectedArea.populacaoExposta)}
-          {formatField("Edificações Expostas", selectedArea.edificacoesExpostas)}
-          {formatField("Infraestrutura Crítica", selectedArea.infraestruturaExposta)}
-          
-          <hr className="my-3" />
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Histórico de Incidentes</h3>
-          {selectedArea.historicoIncidentes && selectedArea.historicoIncidentes.length > 0 ? (
-            <ul className="list-disc list-inside pl-2 space-y-1">
-              {selectedArea.historicoIncidentes.map((inc, index) => (
-                <li key={index}>
-                  <strong>{inc.data}:</strong> {inc.descricao}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p><em className="text-gray-500">Nenhum incidente registrado.</em></p>
-          )}
-          
-          <hr className="my-3" />
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Monitoramento e Ações</h3>
-          {formatField("Ações Mitigadoras Existentes", selectedArea.acoesMitigadoras)}
-          {formatField("Medidas Preventivas Recomendadas", selectedArea.medidasRecomendadas)}
-          {formatField("Status do Monitoramento", selectedArea.statusMonitoramento)}
-          
-          <hr className="my-3" />
-          <h3 className="font-semibold text-md text-gray-900 mt-3">Anexos</h3>
-          {selectedArea.anexos && selectedArea.anexos.length > 0 ? (
-            <ul className="list-disc list-inside pl-2 space-y-1">
-              {selectedArea.anexos.map((anx, index) => (
-                <li key={index}>
-                  <a href={anx.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    {anx.nome} <i className="fas fa-external-link-alt text-xs"></i>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p><em className="text-gray-500">Nenhum anexo disponível.</em></p>
-          )}
-        </div>
-      </div>
+      )}
     </aside>
   );
 };

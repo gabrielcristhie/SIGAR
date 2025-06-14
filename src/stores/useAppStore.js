@@ -136,6 +136,32 @@ const useAppStore = create(
         return selectedAreaId ? riskAreas[selectedAreaId] : null;
       },
 
+      addRiskArea: async (newArea) => {
+        set({ loading: true, error: null });
+        try {
+          try {
+            const response = await apiService.createRiskArea(newArea);
+            const createdArea = response.data;
+            set(state => ({ 
+              riskAreas: { ...state.riskAreas, [createdArea.id]: createdArea },
+              loading: false 
+            }));
+          } catch (apiError) {
+            if (import.meta.env.VITE_DEBUG_MODE === 'true') {
+              console.info('🔄 Modo desenvolvimento: adicionando área localmente (backend não conectado)');
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            set(state => ({ 
+              riskAreas: { ...state.riskAreas, [newArea.id]: newArea },
+              loading: false 
+            }));
+          }
+        } catch (error) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
       initialize: () => {
         const token = localStorage.getItem('authToken');
         if (token) {

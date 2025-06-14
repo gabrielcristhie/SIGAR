@@ -8,7 +8,7 @@ const Notification = () => {
     if (error) {
       const timer = setTimeout(() => {
         clearError();
-      }, 5000); // Auto-fechar após 5 segundos
+      }, 5000); 
 
       return () => clearTimeout(timer);
     }

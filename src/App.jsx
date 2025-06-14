@@ -14,7 +14,6 @@ function App() {
     toggleInfoPanel,
     getSelectedArea,
     initialize,
-    // TODO: Debug states
     isLoginModalOpen,
     loginActionTitle
   } = useAppStore();
@@ -23,7 +22,6 @@ function App() {
     initialize();
   }, [initialize]);
 
-  // TODO: Debug do estado do modal (remover em produção)
   useEffect(() => {
     if (import.meta.env.VITE_DEBUG_MODE === 'true') {
       console.log('🐛 Estado do modal:', { isLoginModalOpen, loginActionTitle });
