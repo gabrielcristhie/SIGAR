@@ -32,7 +32,6 @@ const Sidebar = ({ isOpen }) => {
             {isAuthenticated ? 'Gerenciamento' : 'Ações (Login necessário)'}
           </h2>
           
-          {/* Status de autenticação */}
           {isAuthenticated && user && (
             <div className="mb-4 p-3 bg-green-800 rounded-lg">
               <p className="text-sm text-green-100">
