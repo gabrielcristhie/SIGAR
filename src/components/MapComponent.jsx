@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
 import useAppStore from '../stores/useAppStore';
 
 const MapComponent = () => {
-  const { riskAreas, selectArea, fetchRiskAreas, isLoginModalOpen } = useAppStore();
+  const { riskAreas, selectArea, fetchRiskAreas, isLoginModalOpen, isAuthenticated } = useAppStore();
   const goiasCenter = [-15.9339, -49.8333];
   const [riskConfirmations, setRiskConfirmations] = useState({});
 
@@ -14,6 +14,14 @@ const MapComponent = () => {
   const handleCircleClick = (areaData) => {
     if (!isLoginModalOpen) {
       selectArea(areaData.id);
+    }
+  };
+
+  const handleViewDetails = (areaData) => {
+    if (!isLoginModalOpen) {
+      selectArea(areaData.id);
+      const { toggleInfoPanel } = useAppStore.getState();
+      toggleInfoPanel(true);
     }
   };
 
@@ -216,6 +224,15 @@ const MapComponent = () => {
                       </svg>
                       Enviar anexo
                     </button>
+
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleViewDetails(areaData)}
+                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Ver detalhes
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

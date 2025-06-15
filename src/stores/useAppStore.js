@@ -39,10 +39,11 @@ const useAppStore = create(
       },
 
       selectArea: (areaId) => {
+        console.log('🎯 Store: selectArea chamado com ID:', areaId);
         set({ 
-          selectedAreaId: areaId,
-          isInfoPanelOpen: true 
+          selectedAreaId: areaId
         });
+        console.log('✅ Store: selectedAreaId definido como:', areaId);
       },
 
       toggleInfoPanel: (isOpen) => {
@@ -133,7 +134,11 @@ const useAppStore = create(
 
       getSelectedArea: () => {
         const { riskAreas, selectedAreaId } = get();
-        return selectedAreaId ? riskAreas[selectedAreaId] : null;
+        if (!selectedAreaId) return null;
+        
+        const area = Object.values(riskAreas).find(area => area.id === selectedAreaId);
+        console.log('🔍 Store: getSelectedArea', { selectedAreaId, area: area || 'não encontrada' });
+        return area || null;
       },
 
       addRiskArea: async (newArea) => {
@@ -142,21 +147,75 @@ const useAppStore = create(
           try {
             const response = await apiService.createRiskArea(newArea);
             const createdArea = response.data;
-            set(state => ({ 
-              riskAreas: { ...state.riskAreas, [createdArea.id]: createdArea },
-              loading: false 
-            }));
+            
+            set(state => {
+              const keys = Object.keys(state.riskAreas).map(Number).filter(n => !isNaN(n));
+              const nextKey = keys.length > 0 ? Math.max(...keys) + 1 : 1;
+              return {
+                riskAreas: { ...state.riskAreas, [nextKey]: createdArea },
+                loading: false 
+              };
+            });
           } catch (apiError) {
             if (import.meta.env.VITE_DEBUG_MODE === 'true') {
               console.info('🔄 Modo desenvolvimento: adicionando área localmente (backend não conectado)');
             }
             await new Promise(resolve => setTimeout(resolve, 500));
-            set(state => ({ 
-              riskAreas: { ...state.riskAreas, [newArea.id]: newArea },
-              loading: false 
-            }));
+            
+            set(state => {
+              const keys = Object.keys(state.riskAreas).map(Number).filter(n => !isNaN(n));
+              const nextKey = keys.length > 0 ? Math.max(...keys) + 1 : 1;
+              return {
+                riskAreas: { ...state.riskAreas, [nextKey]: newArea },
+                loading: false 
+              };
+            });
           }
         } catch (error) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      updateRiskArea: async (areaId, updatedArea) => {
+        console.log('🔄 Store: updateRiskArea chamado', { areaId, updatedArea });
+        set({ loading: true, error: null });
+        try {
+          try {
+            const response = await apiService.updateRiskArea(areaId, updatedArea);
+            const updatedAreaFromAPI = response.data;
+
+            set(state => {
+              const key = Object.keys(state.riskAreas).find(key => state.riskAreas[key].id === areaId);
+              if (key) {
+                return {
+                  riskAreas: { ...state.riskAreas, [key]: updatedAreaFromAPI },
+                  loading: false 
+                };
+              }
+              return { loading: false };
+            });
+            console.log('✅ Store: Área atualizada via API');
+          } catch (apiError) {
+            if (import.meta.env.VITE_DEBUG_MODE === 'true') {
+              console.info('🔄 Modo desenvolvimento: atualizando área localmente (backend não conectado)');
+            }
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            set(state => {
+              const key = Object.keys(state.riskAreas).find(key => state.riskAreas[key].id === areaId);
+              if (key) {
+                return {
+                  riskAreas: { ...state.riskAreas, [key]: updatedArea },
+                  loading: false 
+                };
+              }
+              return { loading: false };
+            });
+            console.log('✅ Store: Área atualizada localmente');
+          }
+        } catch (error) {
+          console.error('❌ Store: Erro ao atualizar área:', error);
           set({ error: error.message, loading: false });
           throw error;
         }

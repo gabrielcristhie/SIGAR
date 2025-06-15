@@ -41,7 +41,6 @@ function App() {
       <LoginModal />
       <LoadingOverlay />
       <Notification />
-      {/* <DebugPanel /> */}
     </>
   );
 }

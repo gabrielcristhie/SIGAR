@@ -57,14 +57,12 @@ const LoginModal = () => {
 
   const modalContent = (
     <div className="modal-overlay fixed inset-0 z-[9999] overflow-y-auto" style={{ zIndex: 9999 }}>
-      {/* Overlay */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={handleClose}
         style={{ zIndex: 9998 }}
       />
       
-      {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0" style={{ zIndex: 9999, position: 'relative' }}>
         <div 
           className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
@@ -87,7 +85,6 @@ const LoginModal = () => {
             Para {loginActionTitle?.toLowerCase()}, por favor, insira suas credenciais.
           </p>
           
-          {/* Exibir erros */}
           {(localError || error) && (
             <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
               <p className="text-sm">{localError || error}</p>

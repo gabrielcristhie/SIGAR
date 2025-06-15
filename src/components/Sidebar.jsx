@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
 import CadastroAreaModal from './CadastroAreaModal';
+import EditarAreaModal from './EditarAreaModal';
 
 const Sidebar = ({ isOpen }) => {
-  const { toggleLoginModal, isAuthenticated, user } = useAppStore();
+  const { toggleLoginModal, isAuthenticated, user, getSelectedArea } = useAppStore();
   const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
-
-  const handleLoginModalOpen = (actionTitle) => {
-    toggleLoginModal(true, actionTitle);
-  };
+  const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
 
   const handleAuthenticatedAction = (actionTitle) => {
     console.log('🔘 Botão clicado:', actionTitle, 'Autenticado:', isAuthenticated);
     if (isAuthenticated) {
       if (actionTitle === 'Incluir Área de Risco') {
         setIsCadastroModalOpen(true);
+      } else if (actionTitle === 'Alterar Área de Risco') {
+        const selectedArea = getSelectedArea();
+        console.log('📋 Área selecionada para edição:', selectedArea);
+        if (selectedArea) {
+          console.log('✅ Abrindo modal de edição');
+          setIsEditarModalOpen(true);
+        } else {
+          console.log('❌ Nenhuma área selecionada');
+          alert('Selecione uma área no mapa primeiro para editá-la.');
+        }
       } else {
         alert(`Funcionalidade "${actionTitle}" será implementada em breve.`);
       }
@@ -59,19 +67,6 @@ const Sidebar = ({ isOpen }) => {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                handleAuthenticatedAction('Alterar Área de Risco');
-              }}
-              className="menu-item flex items-center py-2.5 px-4 rounded-lg hover:bg-gray-700 w-full text-left"
-              type="button"
-            >
-              <i className="fas fa-edit w-6 mr-2"></i> 
-              Alterar Área de Risco
-              {!isAuthenticated && <i className="fas fa-lock ml-auto text-gray-400"></i>}
-            </button>
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 handleAuthenticatedAction('Remover Área de Risco');
               }}
               className="menu-item flex items-center py-2.5 px-4 rounded-lg hover:bg-gray-700 w-full text-left"
@@ -110,6 +105,12 @@ const Sidebar = ({ isOpen }) => {
       <CadastroAreaModal 
         isOpen={isCadastroModalOpen} 
         onClose={() => setIsCadastroModalOpen(false)} 
+      />
+      
+      <EditarAreaModal 
+        isOpen={isEditarModalOpen} 
+        onClose={() => setIsEditarModalOpen(false)}
+        areaToEdit={getSelectedArea()}
       />
     </aside>
   );

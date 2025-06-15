@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
+import EditarAreaModal from './EditarAreaModal';
 
 const InfoPanel = () => {
-  const { isInfoPanelOpen, getSelectedArea, toggleInfoPanel } = useAppStore();
+  const { isInfoPanelOpen, getSelectedArea, toggleInfoPanel, isAuthenticated } = useAppStore();
   const selectedArea = getSelectedArea();
+  const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
 
   const formatField = (label, value) => {
     if (value === undefined || value === null || (Array.isArray(value) && value.length === 0) || String(value).trim() === "") {
@@ -25,7 +27,18 @@ const InfoPanel = () => {
     toggleInfoPanel(false);
   };
 
-  if (!selectedArea) return null;
+  const handleEditArea = () => {
+    console.log('🖊️ Botão editar clicado. Autenticado:', isAuthenticated);
+    if (isAuthenticated) {
+      console.log('✅ Abrindo modal de edição do InfoPanel');
+      setIsEditarModalOpen(true);
+    } else {
+      console.log('❌ Usuário não autenticado');
+      alert('Faça login para editar áreas de risco.');
+    }
+  };
+
+  if (!selectedArea || !isInfoPanelOpen) return null;
 
   return (
     <aside className={`bg-white w-96 flex-shrink-0 p-6 shadow-xl fixed right-0 transform ${isInfoPanelOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out z-30 overflow-y-auto border-l-2 border-gray-200`} style={{ top: '80px', height: 'calc(100vh - 80px)' }}>
@@ -33,9 +46,20 @@ const InfoPanel = () => {
         <h2 className="text-xl font-bold text-gray-800">
           Detalhes: {selectedArea.nome} ({selectedArea.id})
         </h2>
-        <button onClick={handleClose} className="text-gray-600 hover:text-gray-900">
-          <i className="fas fa-times text-2xl"></i>
-        </button>
+        <div className="flex items-center space-x-2">
+          {isAuthenticated && (
+            <button 
+              onClick={handleEditArea}
+              className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+              title="Editar área"
+            >
+              <i className="fas fa-edit text-lg"></i>
+            </button>
+          )}
+          <button onClick={handleClose} className="text-gray-600 hover:text-gray-900">
+            <i className="fas fa-times text-2xl"></i>
+          </button>
+        </div>
       </div>
       {isInfoPanelOpen && (
         <div className="space-y-3 text-sm text-gray-700 max-h-[calc(100%-60px)] overflow-y-auto pr-2">
@@ -120,6 +144,12 @@ const InfoPanel = () => {
           </div>
         </div>
       )}
+      
+      <EditarAreaModal 
+        isOpen={isEditarModalOpen} 
+        onClose={() => setIsEditarModalOpen(false)}
+        areaToEdit={selectedArea}
+      />
     </aside>
   );
 };

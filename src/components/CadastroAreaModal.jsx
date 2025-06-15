@@ -265,7 +265,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nome da Área */}
                 <div>
                   <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
                     Nome da Área *
@@ -282,7 +281,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                   {errors.nome && <p className="text-red-500 text-xs mt-1">{errors.nome}</p>}
                 </div>
 
-                {/* Município */}
                 <div>
                   <label htmlFor="municipio" className="block text-sm font-medium text-gray-700 mb-1">
                     Município *
@@ -299,7 +297,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                   {errors.municipio && <p className="text-red-500 text-xs mt-1">{errors.municipio}</p>}
                 </div>
 
-                {/* Bairro */}
                 <div>
                   <label htmlFor="bairro" className="block text-sm font-medium text-gray-700 mb-1">
                     Bairro/Localidade
@@ -315,7 +312,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                   />
                 </div>
 
-                {/* Tipo de Risco */}
                 <div>
                   <label htmlFor="tipoRisco" className="block text-sm font-medium text-gray-700 mb-1">
                     Tipo de Risco *
@@ -335,7 +331,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                   {errors.tipoRisco && <p className="text-red-500 text-xs mt-1">{errors.tipoRisco}</p>}
                 </div>
 
-                {/* Nível de Ameaça */}
                 <div>
                   <label htmlFor="nivelAmeaca" className="block text-sm font-medium text-gray-700 mb-1">
                     Nível de Ameaça
@@ -353,7 +348,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                   </select>
                 </div>
 
-                {/* Responsável */}
                 <div>
                   <label htmlFor="responsavelDC" className="block text-sm font-medium text-gray-700 mb-1">
                     Responsável DC
@@ -370,7 +364,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Descrição */}
               <div>
                 <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
                   Descrição da Área
@@ -386,7 +379,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Tipo de Desenho */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tipo de Área
@@ -417,7 +409,6 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Coordenadas */}
               <div>
                 <label htmlFor="coordenadas" className="block text-sm font-medium text-gray-700 mb-1">
                   Coordenadas (Latitude, Longitude) *
