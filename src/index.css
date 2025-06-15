@@ -5,7 +5,8 @@
 body {
   font-family: "Inter", sans-serif;
   margin: 0;
-  overflow-x: hidden;
+  overflow: hidden;
+  height: 100vh;
 }
 
 .leaflet-container {
@@ -20,6 +21,25 @@ body {
   z-index: 9999 !important;
   position: fixed !important;
 }
+
+.sidebar-fixed {
+  position: fixed !important;
+  top: 80px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  height: calc(100vh - 80px) !important;
+}
+
+@media (min-width: 1024px) {
+  .sidebar-fixed {
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    height: calc(100vh - 80px) !important;
+  }
+}
+
 .modern-popup .leaflet-popup-content-wrapper {
   background: transparent !important;
   border-radius: 12px !important;

@@ -25,9 +25,9 @@ const Sidebar = ({ isOpen }) => {
   };
 
   return (
-    <aside className={`bg-gray-800 text-white w-64 flex-shrink-0 p-4 space-y-2 fixed lg:static inset-y-0 left-0 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out z-40 shadow-lg overflow-y-auto`} style={{ top: '80px', height: 'calc(100vh - 80px)' }}>
-      <div className="h-full flex flex-col">
-        <div>
+    <aside className={`sidebar-fixed bg-gray-800 text-white w-64 flex-shrink-0 p-4 space-y-2 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out z-40 shadow-lg overflow-y-auto`}>
+      <div className="h-full flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto">
           <h2 className="text-lg font-semibold mb-4">
             {isAuthenticated ? 'Gerenciamento' : 'Ações (Login necessário)'}
           </h2>
@@ -100,7 +100,8 @@ const Sidebar = ({ isOpen }) => {
             </ul>
           </div>
         </div>
-        <div className="mt-auto text-xs text-gray-400 pt-4">
+        
+        <div className="flex-shrink-0 text-xs text-gray-400 pt-4 border-t border-gray-700 mt-4">
           <p>&copy; 2025 Defesa Civil de Goiás</p>
           <p>Universidade Federal de Goiás</p>
         </div>

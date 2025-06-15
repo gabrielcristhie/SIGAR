@@ -11,10 +11,10 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 h-screen overflow-hidden">
       <Header onToggleMenu={handleToggleMenu} />
       
-      <div className="flex" style={{ paddingTop: '80px' }}>
+      <div className="flex h-full" style={{ paddingTop: '80px' }}>
         <Sidebar isOpen={isSidebarOpen} />
         
         <main className="flex-grow relative overflow-hidden">

@@ -46,7 +46,7 @@ const MapComponent = () => {
     <div style={{ height: '100vh', width: '100%', position: 'relative', zIndex: 1 }}>
       <MapContainer
         center={goiasCenter}
-        zoom={7}
+        zoom={8}
         style={{ height: '100%', width: '100%', zIndex: 1 }}
         zoomControl={true}
         scrollWheelZoom={true}
@@ -135,38 +135,70 @@ const MapComponent = () => {
                 )}
 
                 <div className="border-t border-gray-200 mt-4 pt-4">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3 space-x-4">
                     <label className="flex items-center cursor-pointer text-sm">
                       <input
                         type="checkbox"
-                        checked={riskConfirmations[areaData.id] || false}
-                        onChange={(e) => handleRiskConfirmation(areaData.id, e.target.checked)}
+                        checked={riskConfirmations[areaData.id] === true}
+                        onChange={() => handleRiskConfirmation(areaData.id, true)}
                         className="sr-only"
                       />
-                      <div className={`relative flex items-center justify-center w-5 h-5 rounded border-2 transition-all duration-200 mr-3 ${
-                        riskConfirmations[areaData.id] 
-                          ? 'bg-green-500 border-green-500' 
-                          : 'bg-red-100 border-red-400 hover:border-red-500'
+                      <div className={`relative flex items-center justify-center w-5 h-5 rounded border-2 transition-all duration-200 mr-2 ${
+                        riskConfirmations[areaData.id] === true
+                          ? 'bg-green-500 border-green-500'
+                          : riskConfirmations[areaData.id] === false
+                            ? 'bg-gray-200 border-gray-400'
+                            : 'bg-white border-green-400 hover:border-green-500'
                       }`}>
-                        {riskConfirmations[areaData.id] ? (
+                        {riskConfirmations[areaData.id] === true ? (
                           <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
                         ) : (
-                          <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          <svg className="w-3 h-3 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8" />
                           </svg>
                         )}
                       </div>
                       <span className={`transition-colors ${
-                        riskConfirmations[areaData.id] 
-                          ? 'text-green-700 font-medium' 
-                          : 'text-red-700'
+                        riskConfirmations[areaData.id] === true
+                          ? 'text-green-700 font-medium'
+                          : 'text-gray-500'
                       }`}>
-                        {riskConfirmations[areaData.id] 
-                          ? 'Área confirmada como de risco' 
-                          : 'Esta área é de risco?'
-                        }
+                        Área com risco
+                      </span>
+                    </label>
+
+                    <label className="flex items-center cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={riskConfirmations[areaData.id] === false}
+                        onChange={() => handleRiskConfirmation(areaData.id, false)}
+                        className="sr-only"
+                      />
+                      <div className={`relative flex items-center justify-center w-5 h-5 rounded border-2 transition-all duration-200 mr-2 ${
+                        riskConfirmations[areaData.id] === false
+                          ? 'bg-red-500 border-red-500'
+                          : riskConfirmations[areaData.id] === true
+                            ? 'bg-gray-200 border-gray-400'
+                            : 'bg-white border-red-400 hover:border-red-500'
+                      }`}>
+                        {riskConfirmations[areaData.id] === false ? (
+                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8" />
+                          </svg>
+                        )}
+                      </div>
+                      <span className={`transition-colors ${
+                        riskConfirmations[areaData.id] === false
+                          ? 'text-red-700 font-medium'
+                          : 'text-gray-500'
+                      }`}>
+                        Área sem risco
                       </span>
                     </label>
                   </div>
@@ -183,13 +215,6 @@ const MapComponent = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                       </svg>
                       Enviar anexo
-                    </button>
-
-                    <button
-                      onClick={() => handleCircleClick(areaData)}
-                      className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      Ver detalhes
                     </button>
                   </div>
                 </div>
