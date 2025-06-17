@@ -24,6 +24,9 @@ const useAppStore = create(
       userSubmissions: [],
       isTokenModalOpen: false,
 
+      removalRequests: [],
+      isRemovalModalOpen: false,
+
       tokenNotification: {
         show: false,
         tokens: 0,
@@ -124,7 +127,8 @@ const useAppStore = create(
               isLoginModalOpen: false,
               loginActionTitle: '',
               userTokens: userData.tokens,
-              userSubmissions: userData.submissions
+              userSubmissions: userData.submissions,
+              removalRequests: userData.removalRequests || []
             });
             return { success: true };
           }
@@ -201,6 +205,36 @@ const useAppStore = create(
                 reviewedAt: null,
                 reviewedBy: null,
                 reviewNotes: ''
+              }
+            ],
+            removalRequests: [
+              {
+                id: 'REM-DEMO-001',
+                areaId: 'R-OLD-001',
+                areaName: 'Área Estabilizada - Centro',
+                requestedBy: 'Usuário Demo',
+                requestedAt: '2025-06-14T10:00:00.000Z',
+                reason: 'RISK_RESOLVED',
+                justification: 'Área foi estabilizada após obras de contenção realizadas pela prefeitura.',
+                status: 'APPROVED',
+                reviewedAt: '2025-06-16T14:00:00.000Z',
+                reviewedBy: 'Cap. João Santos - Defesa Civil',
+                reviewNotes: 'Solicitação aprovada após vistoria técnica confirmar estabilização.',
+                priority: 'MEDIUM'
+              },
+              {
+                id: 'REM-DEMO-002',
+                areaId: 'R2-GO-002',
+                areaName: 'Encosta Sul - Bairro Esperança',
+                requestedBy: 'Usuário Demo',
+                requestedAt: '2025-06-16T16:30:00.000Z',
+                reason: 'INCORRECT_CLASSIFICATION',
+                justification: 'Após nova análise, verificou-se que a área não apresenta características de risco significativo.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'HIGH'
               }
             ]
           };
@@ -328,7 +362,8 @@ const useAppStore = create(
             user: mockUser,
             authToken: token,
             userTokens: userData.tokens,
-            userSubmissions: userData.submissions
+            userSubmissions: userData.submissions,
+            removalRequests: userData.removalRequests || []
           });
         }
 
@@ -414,6 +449,107 @@ const useAppStore = create(
           throw error;
         }
       },
+
+      toggleRemovalModal: (isOpen) => {
+        set({ isRemovalModalOpen: isOpen });
+      },
+
+      requestAreaRemoval: (areaId, reason, justification) => {
+        const area = get().getSelectedArea();
+        if (!area) return null;
+
+        const removalRequest = {
+          id: `REM-${Date.now()}`,
+          areaId: areaId,
+          areaName: area.nome,
+          requestedBy: get().user?.name || 'Usuário',
+          requestedAt: new Date().toISOString(),
+          reason: reason,
+          justification: justification,
+          status: 'PENDING',
+          reviewedAt: null,
+          reviewedBy: null,
+          reviewNotes: '',
+          priority: area.nivelAmeaca === 'Alto' ? 'HIGH' : area.nivelAmeaca === 'Médio' ? 'MEDIUM' : 'LOW'
+        };
+
+        set(state => ({
+          removalRequests: [...state.removalRequests, removalRequest]
+        }));
+
+        console.log('🗑️ Solicitação de remoção criada:', removalRequest);
+        return removalRequest;
+      },
+
+      approveRemovalRequest: (requestId, reviewNotes = '') => {
+        const { removalRequests, riskAreas } = get();
+        const request = removalRequests.find(req => req.id === requestId);
+        
+        if (!request) return false;
+
+        set(state => ({
+          removalRequests: state.removalRequests.map(req => 
+            req.id === requestId 
+              ? {
+                  ...req,
+                  status: 'APPROVED',
+                  reviewedAt: new Date().toISOString(),
+                  reviewedBy: 'Defesa Civil',
+                  reviewNotes: reviewNotes || 'Remoção aprovada pela autoridade competente.'
+                }
+              : req
+          )
+        }));
+
+        set(state => {
+          const newRiskAreas = { ...state.riskAreas };
+          const keyToRemove = Object.keys(newRiskAreas).find(key => 
+            newRiskAreas[key].id === request.areaId
+          );
+          
+          if (keyToRemove) {
+            delete newRiskAreas[keyToRemove];
+          }
+
+          return {
+            riskAreas: newRiskAreas,
+            selectedAreaId: state.selectedAreaId === request.areaId ? null : state.selectedAreaId,
+            isInfoPanelOpen: state.selectedAreaId === request.areaId ? false : state.isInfoPanelOpen
+          };
+        });
+
+        console.log('✅ Área removida do sistema:', request.areaId);
+        return true;
+      },
+
+      rejectRemovalRequest: (requestId, reviewNotes = '') => {
+        set(state => ({
+          removalRequests: state.removalRequests.map(req => 
+            req.id === requestId 
+              ? {
+                  ...req,
+                  status: 'REJECTED',
+                  reviewedAt: new Date().toISOString(),
+                  reviewedBy: 'Defesa Civil',
+                  reviewNotes: reviewNotes || 'Solicitação de remoção rejeitada.'
+                }
+              : req
+          )
+        }));
+
+        console.log('❌ Solicitação de remoção rejeitada:', requestId);
+        return true;
+      },
+
+      getRemovalRequestStats: () => {
+        const { removalRequests } = get();
+        return {
+          totalRequests: removalRequests.length,
+          pendingRequests: removalRequests.filter(req => req.status === 'PENDING').length,
+          approvedRequests: removalRequests.filter(req => req.status === 'APPROVED').length,
+          rejectedRequests: removalRequests.filter(req => req.status === 'REJECTED').length,
+        };
+      },
     }),
     {
       name: 'sigar-app-storage',
@@ -423,6 +559,7 @@ const useAppStore = create(
         authToken: state.authToken,
         userTokens: state.userTokens,
         userSubmissions: state.userSubmissions,
+        removalRequests: state.removalRequests,
       }),
     }
   )

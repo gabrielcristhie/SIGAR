@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import useAppStore from '../stores/useAppStore';
 
 const TokenModal = ({ isOpen, onClose }) => {
-  const { userTokens, userSubmissions, getUserStats, updateSubmissionStatus } = useAppStore();
+  const { userTokens, userSubmissions, removalRequests, getUserStats, updateSubmissionStatus, getRemovalRequestStats } = useAppStore();
   const stats = getUserStats();
+  const removalStats = getRemovalRequestStats();
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -176,6 +177,50 @@ const TokenModal = ({ isOpen, onClose }) => {
                 ))}
               </div>
             )}
+          </div>
+
+          {removalStats.totalRequests > 0 && (
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-3 text-gray-800">🗑️ Solicitações de Remoção</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{removalStats.totalRequests}</div>
+                  <div className="text-sm text-purple-700">Total Solicitado</div>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{removalStats.approvedRequests}</div>
+                  <div className="text-sm text-green-700">Aprovadas</div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-600">{removalStats.pendingRequests}</div>
+                  <div className="text-sm text-orange-700">Pendentes</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3 text-gray-800">🏆 Tabela de Recompensas</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex justify-between">
+                  <span>Nova Submissão:</span>
+                  <span className="font-semibold text-yellow-600">5 SIGAR Coins</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Aprovação Técnica:</span>
+                  <span className="font-semibold text-green-600">20 SIGAR Coins</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Aprovação Crítica:</span>
+                  <span className="font-semibold text-red-600">50 SIGAR Coins</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Usuário Ativo Mensal:</span>
+                  <span className="font-semibold text-blue-600">10 SIGAR Coins</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

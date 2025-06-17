@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
 import EditarAreaModal from './EditarAreaModal';
+import RemovalRequestModal from './RemovalRequestModal';
 
 const InfoPanel = () => {
   const { isInfoPanelOpen, getSelectedArea, toggleInfoPanel, isAuthenticated } = useAppStore();
   const selectedArea = getSelectedArea();
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
+  const [isRemovalModalOpen, setIsRemovalModalOpen] = useState(false);
 
   const formatField = (label, value) => {
     if (value === undefined || value === null || (Array.isArray(value) && value.length === 0) || String(value).trim() === "") {
@@ -38,6 +40,17 @@ const InfoPanel = () => {
     }
   };
 
+  const handleRequestRemoval = () => {
+    console.log('🗑️ Botão remoção clicado. Autenticado:', isAuthenticated);
+    if (isAuthenticated) {
+      console.log('✅ Abrindo modal de solicitação de remoção');
+      setIsRemovalModalOpen(true);
+    } else {
+      console.log('❌ Usuário não autenticado');
+      alert('Faça login para solicitar remoção de áreas de risco.');
+    }
+  };
+
   if (!selectedArea || !isInfoPanelOpen) return null;
 
   return (
@@ -48,13 +61,22 @@ const InfoPanel = () => {
         </h2>
         <div className="flex items-center space-x-2">
           {isAuthenticated && (
-            <button 
-              onClick={handleEditArea}
-              className="text-blue-600 hover:text-blue-800 transition-colors p-1"
-              title="Editar área"
-            >
-              <i className="fas fa-edit text-lg"></i>
-            </button>
+            <>
+              <button 
+                onClick={handleEditArea}
+                className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                title="Editar área"
+              >
+                <i className="fas fa-edit text-lg"></i>
+              </button>
+              <button 
+                onClick={handleRequestRemoval}
+                className="text-red-600 hover:text-red-800 transition-colors p-1"
+                title="Solicitar remoção"
+              >
+                <i className="fas fa-trash-alt text-lg"></i>
+              </button>
+            </>
           )}
           <button onClick={handleClose} className="text-gray-600 hover:text-gray-900">
             <i className="fas fa-times text-2xl"></i>
@@ -149,6 +171,11 @@ const InfoPanel = () => {
         isOpen={isEditarModalOpen} 
         onClose={() => setIsEditarModalOpen(false)}
         areaToEdit={selectedArea}
+      />
+      <RemovalRequestModal
+        isOpen={isRemovalModalOpen}
+        onClose={() => setIsRemovalModalOpen(false)}
+        areaToRemove={selectedArea}
       />
     </aside>
   );

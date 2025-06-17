@@ -2,11 +2,15 @@ import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
 import CadastroAreaModal from './CadastroAreaModal';
 import EditarAreaModal from './EditarAreaModal';
+import RemovalManagementModal from './RemovalManagementModal';
+import RemovalRequestByIdModal from './RemovalRequestByIdModal';
 
 const Sidebar = ({ isOpen }) => {
   const { toggleLoginModal, isAuthenticated, user, getSelectedArea } = useAppStore();
   const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
+  const [isRemovalManagementOpen, setIsRemovalManagementOpen] = useState(false);
+  const [isRemovalRequestOpen, setIsRemovalRequestOpen] = useState(false);
 
   const handleAuthenticatedAction = (actionTitle) => {
     console.log('🔘 Botão clicado:', actionTitle, 'Autenticado:', isAuthenticated);
@@ -23,6 +27,12 @@ const Sidebar = ({ isOpen }) => {
           console.log('❌ Nenhuma área selecionada');
           alert('Selecione uma área no mapa primeiro para editá-la.');
         }
+      } else if (actionTitle === 'Gerenciar Solicitações de Remoção') {
+        console.log('🛡️ Abrindo gerenciamento de solicitações de remoção');
+        setIsRemovalManagementOpen(true);
+      } else if (actionTitle === 'Remover Área de Risco') {
+        console.log('🗑️ Abrindo solicitação de remoção por ID');
+        setIsRemovalRequestOpen(true);
       } else {
         alert(`Funcionalidade "${actionTitle}" será implementada em breve.`);
       }
@@ -77,6 +87,20 @@ const Sidebar = ({ isOpen }) => {
               {!isAuthenticated && <i className="fas fa-lock ml-auto text-gray-400"></i>}
             </button>
           </nav>
+          
+          {isAuthenticated && user?.role === 'admin' && (
+            <div className="mt-8 border-t border-gray-700 pt-4">
+              <h3 className="text-md font-semibold mb-2">🛡️ Área Administrativa</h3>
+              <button
+                onClick={() => handleAuthenticatedAction('Gerenciar Solicitações de Remoção')}
+                className="w-full text-left px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 rounded-md transition-colors mb-2"
+              >
+                <i className="fas fa-tasks mr-2"></i>
+                Gerenciar Solicitações
+              </button>
+            </div>
+          )}
+
           <div className="mt-8 border-t border-gray-700 pt-4">
             <h3 className="text-md font-semibold mb-2">Legenda de Risco</h3>
             <ul className="space-y-1 text-sm">
@@ -111,6 +135,16 @@ const Sidebar = ({ isOpen }) => {
         isOpen={isEditarModalOpen} 
         onClose={() => setIsEditarModalOpen(false)}
         areaToEdit={getSelectedArea()}
+      />
+      
+      <RemovalManagementModal 
+        isOpen={isRemovalManagementOpen} 
+        onClose={() => setIsRemovalManagementOpen(false)}
+      />
+      
+      <RemovalRequestByIdModal 
+        isOpen={isRemovalRequestOpen} 
+        onClose={() => setIsRemovalRequestOpen(false)}
       />
     </aside>
   );
