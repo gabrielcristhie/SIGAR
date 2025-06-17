@@ -20,6 +20,23 @@ const useAppStore = create(
       user: null,
       authToken: null,
 
+      userTokens: 0,
+      userSubmissions: [],
+      isTokenModalOpen: false,
+
+      tokenNotification: {
+        show: false,
+        tokens: 0,
+        message: ''
+      },
+
+      TOKEN_REWARDS: {
+        SUBMISSION: 5,
+        APPROVED: 20,
+        CRITICAL_AREA: 50,
+        MONTHLY_ACTIVE: 10
+      },
+
       fetchRiskAreas: async () => {
         set({ loading: true, error: null });
         try {
@@ -97,13 +114,17 @@ const useAppStore = create(
             const mockToken = 'mock-jwt-token-' + Date.now();
             localStorage.setItem('authToken', mockToken);
             
+            const userData = get().loadUserData(credentials.username);
+            
             set({ 
               isAuthenticated: true,
               user: mockUser,
               authToken: mockToken,
               loading: false,
               isLoginModalOpen: false,
-              loginActionTitle: ''
+              loginActionTitle: '',
+              userTokens: userData.tokens,
+              userSubmissions: userData.submissions
             });
             return { success: true };
           }
@@ -135,10 +156,183 @@ const useAppStore = create(
       getSelectedArea: () => {
         const { riskAreas, selectedAreaId } = get();
         if (!selectedAreaId) return null;
-        
         const area = Object.values(riskAreas).find(area => area.id === selectedAreaId);
         console.log('🔍 Store: getSelectedArea', { selectedAreaId, area: area || 'não encontrada' });
         return area || null;
+      },
+
+      loadUserData: (username) => {
+        if (username === 'demo' || username === 'admin') {
+          return {
+            tokens: 85,
+            submissions: [
+              {
+                id: 'SUB-DEMO-001',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                submissionType: 'NEW_AREA',
+                status: 'APPROVED',
+                submittedAt: '2025-06-10T10:00:00.000Z',
+                tokensEarned: 75,
+                reviewedAt: '2025-06-12T14:30:00.000Z',
+                reviewedBy: 'Eng. Ana Silva',
+                reviewNotes: 'Área confirmada após vistoria técnica. Alto risco de deslizamento confirmado.'
+              },
+              {
+                id: 'SUB-DEMO-002',
+                areaId: 'R-DEMO-002',
+                areaName: 'Área Industrial - Setor Norte',
+                submissionType: 'NEW_AREA',
+                status: 'REJECTED',
+                submittedAt: '2025-06-08T15:20:00.000Z',
+                tokensEarned: 5,
+                reviewedAt: '2025-06-09T09:15:00.000Z',
+                reviewedBy: 'Téc. Carlos Santos',
+                reviewNotes: 'Área não apresenta características de risco significativo após análise técnica.'
+              },
+              {
+                id: 'SUB-DEMO-003',
+                areaId: 'R-DEMO-003',
+                areaName: 'Área Residencial - Vila Nova',
+                submissionType: 'NEW_AREA',
+                status: 'PENDING',
+                submittedAt: '2025-06-15T08:45:00.000Z',
+                tokensEarned: 5,
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ''
+              }
+            ]
+          };
+        }
+        
+        return {
+          tokens: 0,
+          submissions: []
+        };
+      },
+      toggleTokenModal: (isOpen) => {
+        set({ isTokenModalOpen: isOpen });
+      },
+
+      showTokenNotification: (tokens, message) => {
+        set({
+          tokenNotification: {
+            show: true,
+            tokens,
+            message
+          }
+        });
+      },
+
+      hideTokenNotification: () => {
+        set({
+          tokenNotification: {
+            show: false,
+            tokens: 0,
+            message: ''
+          }
+        });
+      },
+
+      addUserSubmission: (areaData, submissionType = 'NEW_AREA') => {
+        const submission = {
+          id: `SUB-${Date.now()}`,
+          areaId: areaData.id,
+          areaName: areaData.nome,
+          submissionType,
+          status: 'PENDING',
+          submittedAt: new Date().toISOString(),
+          tokensEarned: 0,
+          reviewedAt: null,
+          reviewedBy: null,
+          reviewNotes: ''
+        };
+
+        const tokensGanhos = get().TOKEN_REWARDS.SUBMISSION;
+
+        set(state => ({
+          userSubmissions: [...state.userSubmissions, submission],
+          userTokens: state.userTokens + tokensGanhos
+        }));
+
+        get().showTokenNotification(tokensGanhos, 'Área submetida com sucesso!');
+
+        console.log('🎁 Tokens ganhos por submissão:', tokensGanhos);
+        return submission;
+      },
+
+      updateSubmissionStatus: (submissionId, status, reviewNotes = '') => {
+        set(state => {
+          const updatedSubmissions = state.userSubmissions.map(sub => {
+            if (sub.id === submissionId) {
+              let tokensBonus = 0;
+              if (status === 'APPROVED') {
+                tokensBonus = state.TOKEN_REWARDS.APPROVED;
+                const area = Object.values(state.riskAreas).find(area => area.id === sub.areaId);
+                if (area && area.nivelAmeaca === 'Alto') {
+                  tokensBonus += state.TOKEN_REWARDS.CRITICAL_AREA;
+                }
+              }
+
+              return {
+                ...sub,
+                status,
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: 'Sistema Técnico',
+                reviewNotes,
+                tokensEarned: sub.tokensEarned + tokensBonus
+              };
+            }
+            return sub;
+          });
+
+          const totalBonusTokens = updatedSubmissions
+            .filter(sub => sub.id === submissionId && sub.status === 'APPROVED')
+            .reduce((sum, sub) => sum + (sub.tokensEarned - state.TOKEN_REWARDS.SUBMISSION), 0);
+
+          return {
+            userSubmissions: updatedSubmissions,
+            userTokens: state.userTokens + totalBonusTokens
+          };
+        });
+      },
+
+      getUserStats: () => {
+        const { userSubmissions, userTokens } = get();
+        return {
+          totalSubmissions: userSubmissions.length,
+          approvedSubmissions: userSubmissions.filter(sub => sub.status === 'APPROVED').length,
+          pendingSubmissions: userSubmissions.filter(sub => sub.status === 'PENDING').length,
+          rejectedSubmissions: userSubmissions.filter(sub => sub.status === 'REJECTED').length,
+          totalTokens: userTokens,
+          avgTokensPerSubmission: userSubmissions.length > 0 ? (userTokens / userSubmissions.length).toFixed(1) : 0
+        };
+      },
+
+      initialize: () => {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          const mockUser = {
+            id: 1,
+            username: 'usuario.restaurado',
+            name: 'Usuário Restaurado',
+            role: 'admin',
+            email: 'usuario@sigar.go.gov.br'
+          };
+          
+          const userData = get().loadUserData('demo');
+          
+          set({ 
+            isAuthenticated: true,
+            user: mockUser,
+            authToken: token,
+            userTokens: userData.tokens,
+            userSubmissions: userData.submissions
+          });
+        }
+
+        get().fetchRiskAreas();
       },
 
       addRiskArea: async (newArea) => {
@@ -161,7 +355,7 @@ const useAppStore = create(
               console.info('🔄 Modo desenvolvimento: adicionando área localmente (backend não conectado)');
             }
             await new Promise(resolve => setTimeout(resolve, 500));
-            
+
             set(state => {
               const keys = Object.keys(state.riskAreas).map(Number).filter(n => !isNaN(n));
               const nextKey = keys.length > 0 ? Math.max(...keys) + 1 : 1;
@@ -184,7 +378,7 @@ const useAppStore = create(
           try {
             const response = await apiService.updateRiskArea(areaId, updatedArea);
             const updatedAreaFromAPI = response.data;
-
+            
             set(state => {
               const key = Object.keys(state.riskAreas).find(key => state.riskAreas[key].id === areaId);
               if (key) {
@@ -220,27 +414,6 @@ const useAppStore = create(
           throw error;
         }
       },
-
-      initialize: () => {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          const mockUser = {
-            id: 1,
-            username: 'usuario.restaurado',
-            name: 'Usuário Restaurado',
-            role: 'admin',
-            email: 'usuario@sigar.go.gov.br'
-          };
-          
-          set({ 
-            isAuthenticated: true,
-            user: mockUser,
-            authToken: token
-          });
-        }
-
-        get().fetchRiskAreas();
-      }
     }),
     {
       name: 'sigar-app-storage',
@@ -248,6 +421,8 @@ const useAppStore = create(
         isAuthenticated: state.isAuthenticated,
         user: state.user,
         authToken: state.authToken,
+        userTokens: state.userTokens,
+        userSubmissions: state.userSubmissions,
       }),
     }
   )

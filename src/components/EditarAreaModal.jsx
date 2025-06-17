@@ -27,7 +27,6 @@ const EditarAreaModal = ({ isOpen, onClose, areaToEdit }) => {
   });
 
   const [coordenadasInput, setCoordenadasInput] = useState('');
-  const [tipoDesenho, setTipoDesenho] = useState('poligono');
   const [errors, setErrors] = useState({});
 
   const tiposRisco = [

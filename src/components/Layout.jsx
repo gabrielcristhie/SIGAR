@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import InfoPanel from './InfoPanel';
+import TokenModal from './TokenModal';
+import TokenNotification from './TokenNotification';
+import useAppStore from '../stores/useAppStore';
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isTokenModalOpen, toggleTokenModal, tokenNotification, hideTokenNotification } = useAppStore();
 
   const handleToggleMenu = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -23,6 +27,18 @@ const Layout = ({ children }) => {
         
         <InfoPanel />
       </div>
+
+      <TokenModal 
+        isOpen={isTokenModalOpen} 
+        onClose={() => toggleTokenModal(false)} 
+      />
+
+      <TokenNotification
+        show={tokenNotification.show}
+        tokens={tokenNotification.tokens}
+        message={tokenNotification.message}
+        onClose={hideTokenNotification}
+      />
     </div>
   );
 };

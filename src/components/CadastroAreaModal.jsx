@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import useAppStore from '../stores/useAppStore';
 
 const CadastroAreaModal = ({ isOpen, onClose }) => {
-  const { addRiskArea, loading } = useAppStore();
+  const { addRiskArea, loading, addUserSubmission } = useAppStore();
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -183,6 +183,7 @@ const CadastroAreaModal = ({ isOpen, onClose }) => {
       };
       
       await addRiskArea(newArea);
+      addUserSubmission(newArea, 'NEW_AREA');
       
       setFormData({
         nome: '',

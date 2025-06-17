@@ -2,7 +2,7 @@ import React from 'react';
 import useAppStore from '../stores/useAppStore';
 
 const Header = ({ onToggleMenu }) => {
-  const { isAuthenticated, user, logout, toggleLoginModal } = useAppStore();
+  const { isAuthenticated, user, logout, toggleLoginModal, userTokens, toggleTokenModal } = useAppStore();
 
   const handleLogout = () => {
     logout();
@@ -39,6 +39,16 @@ const Header = ({ onToggleMenu }) => {
         
         {isAuthenticated && user && (
           <div className="flex items-center space-x-3">
+            <button
+              onClick={() => toggleTokenModal(true)}
+              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-lg hover:from-yellow-600 hover:to-orange-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              title="Ver SIGAR Coins"
+            >
+              <span className="text-lg">🪙</span>
+              <span className="font-semibold">{userTokens}</span>
+              <span className="hidden sm:inline text-sm">SIGAR Coins</span>
+            </button>
+            
             <div className="hidden md:block text-right">
               <p className="text-sm font-medium text-gray-700">{user.name}</p>
               <p className="text-xs text-gray-500">{user.role}</p>
