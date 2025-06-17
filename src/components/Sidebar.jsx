@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
 import CadastroAreaModal from './CadastroAreaModal';
 import EditarAreaModal from './EditarAreaModal';
-import RemovalManagementModal from './RemovalManagementModal';
+import RequestManagementModal from './RequestManagementModal';
 import RemovalRequestByIdModal from './RemovalRequestByIdModal';
 
 const Sidebar = ({ isOpen }) => {
@@ -27,8 +27,8 @@ const Sidebar = ({ isOpen }) => {
           console.log('❌ Nenhuma área selecionada');
           alert('Selecione uma área no mapa primeiro para editá-la.');
         }
-      } else if (actionTitle === 'Gerenciar Solicitações de Remoção') {
-        console.log('🛡️ Abrindo gerenciamento de solicitações de remoção');
+      } else if (actionTitle === 'Gerenciar Solicitações') {
+        console.log('🛡️ Abrindo central de gerenciamento de solicitações');
         setIsRemovalManagementOpen(true);
       } else if (actionTitle === 'Remover Área de Risco') {
         console.log('🗑️ Abrindo solicitação de remoção por ID');
@@ -92,7 +92,7 @@ const Sidebar = ({ isOpen }) => {
             <div className="mt-8 border-t border-gray-700 pt-4">
               <h3 className="text-md font-semibold mb-2">🛡️ Área Administrativa</h3>
               <button
-                onClick={() => handleAuthenticatedAction('Gerenciar Solicitações de Remoção')}
+                onClick={() => handleAuthenticatedAction('Gerenciar Solicitações')}
                 className="w-full text-left px-3 py-2 text-sm bg-purple-600 hover:bg-purple-700 rounded-md transition-colors mb-2"
               >
                 <i className="fas fa-tasks mr-2"></i>
@@ -137,7 +137,7 @@ const Sidebar = ({ isOpen }) => {
         areaToEdit={getSelectedArea()}
       />
       
-      <RemovalManagementModal 
+      <RequestManagementModal 
         isOpen={isRemovalManagementOpen} 
         onClose={() => setIsRemovalManagementOpen(false)}
       />

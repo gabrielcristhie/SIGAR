@@ -174,6 +174,9 @@ const useAppStore = create(
                 id: 'SUB-DEMO-001',
                 areaId: 'R1-GO-001',
                 areaName: 'Encosta do Morro da Cruz',
+                description: 'Área com histórico de deslizamentos em períodos chuvosos intensos.',
+                riskLevel: 'HIGH',
+                affectedPopulation: 200,
                 submissionType: 'NEW_AREA',
                 status: 'APPROVED',
                 submittedAt: '2025-06-10T10:00:00.000Z',
@@ -186,6 +189,9 @@ const useAppStore = create(
                 id: 'SUB-DEMO-002',
                 areaId: 'R-DEMO-002',
                 areaName: 'Área Industrial - Setor Norte',
+                description: 'Possível contaminação química no solo da área industrial.',
+                riskLevel: 'MEDIUM',
+                affectedPopulation: 50,
                 submissionType: 'NEW_AREA',
                 status: 'REJECTED',
                 submittedAt: '2025-06-08T15:20:00.000Z',
@@ -198,6 +204,9 @@ const useAppStore = create(
                 id: 'SUB-DEMO-003',
                 areaId: 'R-DEMO-003',
                 areaName: 'Área Residencial - Vila Nova',
+                description: 'Suspeita de instabilidade do solo em área residencial.',
+                riskLevel: 'LOW',
+                affectedPopulation: 150,
                 submissionType: 'NEW_AREA',
                 status: 'PENDING',
                 submittedAt: '2025-06-15T08:45:00.000Z',
@@ -213,7 +222,7 @@ const useAppStore = create(
                 areaId: 'R-OLD-001',
                 areaName: 'Área Estabilizada - Centro',
                 requestedBy: 'Usuário Demo',
-                requestedAt: '2025-06-14T10:00:00.000Z',
+                createdAt: '2025-06-14T10:00:00.000Z',
                 reason: 'RISK_RESOLVED',
                 justification: 'Área foi estabilizada após obras de contenção realizadas pela prefeitura.',
                 status: 'APPROVED',
@@ -227,7 +236,7 @@ const useAppStore = create(
                 areaId: 'R2-GO-002',
                 areaName: 'Encosta Sul - Bairro Esperança',
                 requestedBy: 'Usuário Demo',
-                requestedAt: '2025-06-16T16:30:00.000Z',
+                createdAt: '2025-06-16T16:30:00.000Z',
                 reason: 'INCORRECT_CLASSIFICATION',
                 justification: 'Após nova análise, verificou-se que a área não apresenta características de risco significativo.',
                 status: 'PENDING',
@@ -242,7 +251,8 @@ const useAppStore = create(
         
         return {
           tokens: 0,
-          submissions: []
+          submissions: [],
+          removalRequests: []
         };
       },
       toggleTokenModal: (isOpen) => {
@@ -342,6 +352,64 @@ const useAppStore = create(
           totalTokens: userTokens,
           avgTokensPerSubmission: userSubmissions.length > 0 ? (userTokens / userSubmissions.length).toFixed(1) : 0
         };
+      },
+
+      getSubmissionStats: () => {
+        const { userSubmissions } = get();
+        return {
+          total: userSubmissions.length,
+          pending: userSubmissions.filter(sub => sub.status === 'PENDING').length,
+          approved: userSubmissions.filter(sub => sub.status === 'APPROVED').length,
+          rejected: userSubmissions.filter(sub => sub.status === 'REJECTED').length
+        };
+      },
+
+      approveSubmission: (submissionId, reviewNotes = '') => {
+        console.log('✅ Aprovando solicitação de adição:', submissionId);
+        set(state => {
+          const updatedSubmissions = state.userSubmissions.map(sub => {
+            if (sub.id === submissionId) {
+              return {
+                ...sub,
+                status: 'APPROVED',
+                reviewNotes,
+                reviewedAt: new Date().toISOString(),
+                tokensEarned: state.TOKEN_REWARDS.APPROVED
+              };
+            }
+            return sub;
+          });
+
+          const bonusTokens = state.TOKEN_REWARDS.APPROVED;
+
+          return {
+            userSubmissions: updatedSubmissions,
+            userTokens: state.userTokens + bonusTokens
+          };
+        });
+
+        get().showTokenNotification(get().TOKEN_REWARDS.APPROVED, 'Solicitação aprovada!');
+      },
+
+      rejectSubmission: (submissionId, reviewNotes = '') => {
+        console.log('❌ Rejeitando solicitação de adição:', submissionId);
+        set(state => {
+          const updatedSubmissions = state.userSubmissions.map(sub => {
+            if (sub.id === submissionId) {
+              return {
+                ...sub,
+                status: 'REJECTED',
+                reviewNotes,
+                reviewedAt: new Date().toISOString()
+              };
+            }
+            return sub;
+          });
+
+          return {
+            userSubmissions: updatedSubmissions
+          };
+        });
       },
 
       initialize: () => {
@@ -544,10 +612,10 @@ const useAppStore = create(
       getRemovalRequestStats: () => {
         const { removalRequests } = get();
         return {
-          totalRequests: removalRequests.length,
-          pendingRequests: removalRequests.filter(req => req.status === 'PENDING').length,
-          approvedRequests: removalRequests.filter(req => req.status === 'APPROVED').length,
-          rejectedRequests: removalRequests.filter(req => req.status === 'REJECTED').length,
+          total: removalRequests.length,
+          pending: removalRequests.filter(req => req.status === 'PENDING').length,
+          approved: removalRequests.filter(req => req.status === 'APPROVED').length,
+          rejected: removalRequests.filter(req => req.status === 'REJECTED').length,
         };
       },
     }),
