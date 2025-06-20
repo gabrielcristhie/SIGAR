@@ -23,12 +23,21 @@ const useAppStore = create(
       userTokens: 0,
       userSubmissions: [],
       isTokenModalOpen: false,
+      
+      isWithdrawModalOpen: false,
+      withdrawHistory: [],
+      
+      COIN_VALUE: 0.50,
+      MIN_WITHDRAWAL: 20,
 
       removalRequests: [],
       isRemovalModalOpen: false,
 
       userVotes: [],
       votingHistory: [],
+
+      inspectionRoadmaps: [],
+      isRoadmapModalOpen: false,
 
       tokenNotification: {
         show: false,
@@ -119,8 +128,8 @@ const useAppStore = create(
             const mockUser = {
               id: 1,
               username: credentials.username,
-              name: 'Usuário Simulado',
-              role: 'admin',
+              name: credentials.username === 'inspetor' ? 'Inspetor de Campo' : 'Usuário Simulado',
+              role: credentials.username === 'inspetor' ? 'inspector' : 'admin',
               email: `${credentials.username}@sigar.go.gov.br`
             };
             
@@ -176,7 +185,7 @@ const useAppStore = create(
       },
 
       loadUserData: (username) => {
-        if (username === 'demo' || username === 'admin') {
+        if (username === 'demo' || username === 'admin' || username === 'inspetor') {
           return {
             tokens: 85,
             submissions: [
@@ -575,6 +584,12 @@ const useAppStore = create(
           });
         }
 
+        const currentState = get();
+        if (!currentState.inspectionRoadmaps || currentState.inspectionRoadmaps.length === 0) {
+          console.log('🚀 Inicializando dados de exemplo para roadmaps');
+          get().loadExampleRoadmaps();
+        }
+
         get().fetchRiskAreas();
       },
 
@@ -878,6 +893,407 @@ const useAppStore = create(
         return areasWithCounts.sort((a, b) => b.requestCount - a.requestCount);
       },
 
+      toggleWithdrawModal: (isOpen) => {
+        set({ isWithdrawModalOpen: isOpen });
+      },
+
+      getWithdrawableAmount: () => {
+        const { userTokens, COIN_VALUE } = get();
+        return userTokens * COIN_VALUE;
+      },
+
+      canWithdraw: () => {
+        const { userTokens, MIN_WITHDRAWAL } = get();
+        return userTokens >= MIN_WITHDRAWAL;
+      },
+
+      processWithdrawal: (withdrawData) => {
+        const { userTokens, withdrawHistory, COIN_VALUE } = get();
+        const { coins, paymentMethod, accountInfo } = withdrawData;
+        
+        if (coins > userTokens) {
+          throw new Error('Saldo insuficiente de SIGAR Coins');
+        }
+        
+        if (coins < get().MIN_WITHDRAWAL) {
+          throw new Error(`Saque mínimo de ${get().MIN_WITHDRAWAL} coins`);
+        }
+
+        const withdrawalAmount = coins * COIN_VALUE;
+        
+        const withdrawal = {
+          id: `WITHDRAW-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          coins,
+          amount: withdrawalAmount,
+          paymentMethod,
+          accountInfo,
+          status: 'PROCESSING',
+          requestedAt: new Date().toISOString(),
+          processedAt: null,
+          userId: get().user?.id,
+          username: get().user?.username
+        };
+
+        set(state => ({
+          userTokens: state.userTokens - coins,
+          withdrawHistory: [withdrawal, ...state.withdrawHistory],
+          isWithdrawModalOpen: false
+        }));
+
+        setTimeout(() => {
+          set(state => ({
+            withdrawHistory: state.withdrawHistory.map(w => 
+              w.id === withdrawal.id 
+                ? { ...w, status: 'COMPLETED', processedAt: new Date().toISOString() }
+                : w
+            )
+          }));
+        }, 3000);
+
+        return withdrawal;
+      },
+
+      getWithdrawHistory: () => {
+        const { withdrawHistory } = get();
+        return withdrawHistory.sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+      },
+
+      toggleRoadmapModal: (isOpen) => {
+        set({ isRoadmapModalOpen: isOpen });
+      },
+
+      createInspectionRoadmap: (roadmapData) => {
+        const roadmap = {
+          id: `ROADMAP-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          ...roadmapData,
+          createdAt: new Date().toISOString(),
+          createdBy: get().user?.username || 'admin',
+          status: 'ACTIVE',
+          areas: roadmapData.areas.map(area => ({
+            ...area,
+            status: 'PENDING',
+            visitedAt: null,
+            findings: null,
+            inspector: null
+          }))
+        };
+
+        set(state => ({
+          inspectionRoadmaps: [roadmap, ...state.inspectionRoadmaps]
+        }));
+
+        return roadmap;
+      },
+
+      updateAreaInspection: (roadmapId, areaId, inspectionData) => {
+        set(state => ({
+          inspectionRoadmaps: state.inspectionRoadmaps.map(roadmap => {
+            if (roadmap.id === roadmapId) {
+              const updatedAreas = roadmap.areas.map(area => {
+                if (area.id === areaId) {
+                  return {
+                    ...area,
+                    ...inspectionData,
+                    visitedAt: new Date().toISOString()
+                  };
+                }
+                return area;
+              });
+
+              const completedAreasCount = updatedAreas.filter(area => area.status === 'COMPLETED').length;
+              const newStatus = completedAreasCount === updatedAreas.length ? 'COMPLETED' : 'IN_PROGRESS';
+
+              return {
+                ...roadmap,
+                areas: updatedAreas,
+                status: newStatus,
+                lastUpdated: new Date().toISOString()
+              };
+            }
+            return roadmap;
+          })
+        }));
+      },
+
+      getRoadmapStats: () => {
+        const { inspectionRoadmaps } = get();
+        
+        if (!inspectionRoadmaps || inspectionRoadmaps.length === 0) {
+          return {
+            total: 0,
+            active: 0,
+            inProgress: 0,
+            completed: 0,
+            totalAreas: 0,
+            completedAreas: 0
+          };
+        }
+        
+        let totalAreas = 0;
+        let completedAreas = 0;
+        
+        inspectionRoadmaps.forEach(roadmap => {
+          if (roadmap.areas && Array.isArray(roadmap.areas)) {
+            totalAreas += roadmap.areas.length;
+            completedAreas += roadmap.areas.filter(area => area.status === 'COMPLETED').length;
+          }
+        });
+        
+        return {
+          total: inspectionRoadmaps.length,
+          active: inspectionRoadmaps.filter(r => r.status === 'ACTIVE').length,
+          inProgress: inspectionRoadmaps.filter(r => r.status === 'IN_PROGRESS').length,
+          completed: inspectionRoadmaps.filter(r => r.status === 'COMPLETED').length,
+          totalAreas: totalAreas,
+          completedAreas: completedAreas
+        };
+      },
+
+      loadExampleRoadmaps: () => {
+        const exampleRoadmaps = [
+          {
+            id: 'ROADMAP-001',
+            title: 'Vistoria Região Norte - Janeiro 2025',
+            description: 'Inspeção preventiva nas áreas de risco da região norte de Goiânia após período chuvoso intenso.',
+            inspector: 'João Silva',
+            priority: 'HIGH',
+            estimatedDays: 5,
+            status: 'ACTIVE',
+            createdAt: new Date('2025-01-15').toISOString(),
+            createdBy: 'admin',
+            areas: [
+              {
+                id: 'R1-GO-001',
+                name: 'Encosta do Morro da Cruz',
+                municipality: 'Goiânia',
+                neighborhood: 'Jardim das Oliveiras',
+                riskType: 'Deslizamento',
+                status: 'COMPLETED',
+                inspectedAt: new Date('2025-01-16').toISOString(),
+                inspector: 'João Silva'
+              },
+              {
+                id: 'R1-GO-002', 
+                name: 'Vale do Jardim Petrópolis',
+                municipality: 'Goiânia',
+                neighborhood: 'Jardim Petrópolis',
+                riskType: 'Alagamento',
+                status: 'IN_PROGRESS',
+                inspectedAt: null,
+                inspector: null
+              },
+              {
+                id: 'R1-GO-003',
+                name: 'Córrego do Bacalhau',
+                municipality: 'Goiânia',
+                neighborhood: 'Setor Norte Ferroviário',
+                riskType: 'Enchente',
+                status: 'PENDING',
+                inspectedAt: null,
+                inspector: null
+              }
+            ],
+            inspections: [
+              {
+                id: 'INSP-001',
+                roadmapId: 'ROADMAP-001',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                status: 'COMPLETED',
+                findings: 'Identificadas rachaduras em 3 residências na parte alta da encosta. Solo apresenta sinais de instabilidade após chuvas recentes. Drenagem inadequada contribui para o acúmulo de água.',
+                recommendations: 'Recomenda-se evacuação preventiva de 2 residências em situação crítica. Implementar sistema de drenagem emergencial. Monitoramento contínuo durante período chuvoso.',
+                riskLevel: 'HIGH',
+                inspector: 'João Silva',
+                inspectedAt: new Date('2025-01-16').toISOString()
+              }
+            ]
+          },
+          {
+            id: 'ROADMAP-002',
+            title: 'Monitoramento Áreas Críticas - Região Sul',
+            description: 'Acompanhamento mensal das áreas classificadas como alto risco na região sul da cidade.',
+            inspector: 'Maria Santos',
+            priority: 'MEDIUM', 
+            estimatedDays: 3,
+            status: 'PLANNED',
+            createdAt: new Date('2025-01-18').toISOString(),
+            createdBy: 'admin',
+            areas: [
+              {
+                id: 'R1-GO-004',
+                name: 'Setor Vila Nova',
+                municipality: 'Goiânia',
+                neighborhood: 'Vila Nova',
+                riskType: 'Deslizamento',
+                status: 'PENDING',
+                inspectedAt: null,
+                inspector: null
+              },
+              {
+                id: 'R1-GO-005',
+                name: 'Margem do Rio Meia Ponte',
+                municipality: 'Goiânia',
+                neighborhood: 'Setor Sul',
+                riskType: 'Enchente',
+                status: 'PENDING', 
+                inspectedAt: null,
+                inspector: null
+              }
+            ],
+            inspections: []
+          },
+          {
+            id: 'ROADMAP-003',
+            title: 'Vistoria Emergencial Pós-Temporal',
+            description: 'Verificação urgente após temporal com ventos de 80km/h e chuva intensa que atingiu a região metropolitana.',
+            inspector: 'Carlos Roberto',
+            priority: 'HIGH',
+            estimatedDays: 2,
+            status: 'ACTIVE',
+            createdAt: new Date('2025-01-20').toISOString(),
+            createdBy: 'admin',
+            areas: [
+              {
+                id: 'R1-GO-006',
+                name: 'Favela do Jardim Novo Mundo',
+                municipality: 'Goiânia',
+                neighborhood: 'Jardim Novo Mundo',
+                riskType: 'Tempestade',
+                status: 'COMPLETED',
+                inspectedAt: new Date('2025-01-20').toISOString(),
+                inspector: 'Carlos Roberto'
+              },
+              {
+                id: 'R1-GO-007',
+                name: 'Área Industrial Oeste',
+                municipality: 'Goiânia',
+                neighborhood: 'Distrito Industrial',
+                riskType: 'Tempestade',
+                status: 'COMPLETED',
+                inspectedAt: new Date('2025-01-20').toISOString(),
+                inspector: 'Carlos Roberto'
+              }
+            ],
+            inspections: [
+              {
+                id: 'INSP-002',
+                roadmapId: 'ROADMAP-003',
+                areaId: 'R1-GO-006',
+                areaName: 'Favela do Jardim Novo Mundo',
+                status: 'COMPLETED',
+                findings: 'Queda de árvores bloqueou via principal. Destelhamento em 15 residências. Alagamento em área baixa com 40cm de altura. Rede elétrica danificada.',
+                recommendations: 'Remoção imediata de árvores caídas. Distribuição de lonas para coberturas temporárias. Bombeamento da água acumulada. Isolamento da rede elétrica danificada.',
+                riskLevel: 'HIGH',
+                inspector: 'Carlos Roberto',
+                inspectedAt: new Date('2025-01-20').toISOString()
+              },
+              {
+                id: 'INSP-003',
+                roadmapId: 'ROADMAP-003',
+                areaId: 'R1-GO-007',
+                areaName: 'Área Industrial Oeste',
+                status: 'COMPLETED',
+                findings: 'Galpão industrial com estrutura comprometida. Telhas metálicas espalhadas pela via. Container de produtos químicos deslocado mas íntegro.',
+                recommendations: 'Interdição imediata do galpão. Limpeza da via para liberação do tráfego. Verificação técnica do container químico. Comunicação à empresa responsável.',
+                riskLevel: 'MEDIUM',
+                inspector: 'Carlos Roberto',
+                inspectedAt: new Date('2025-01-20').toISOString()
+              }
+            ]
+          },
+          {
+            id: 'ROADMAP-004',
+            title: 'Manutenção Preventiva - Período Seco',
+            description: 'Aproveitamento do período seco para obras de contenção e melhorias estruturais em áreas de risco.',
+            inspector: 'Ana Paula',
+            priority: 'LOW',
+            estimatedDays: 10,
+            status: 'PLANNED',
+            createdAt: new Date('2025-01-22').toISOString(),
+            createdBy: 'admin',
+            areas: [
+              {
+                id: 'R1-GO-008',
+                name: 'Encosta do Bairro Popular',
+                municipality: 'Goiânia',
+                neighborhood: 'Bairro Popular',
+                riskType: 'Erosão',
+                status: 'PENDING',
+                inspectedAt: null,
+                inspector: null
+              },
+              {
+                id: 'R1-GO-009',
+                name: 'Área de Preservação - Córrego Cascavel',
+                municipality: 'Goiânia',
+                neighborhood: 'Vila Cascavel',
+                riskType: 'Enchente',
+                status: 'PENDING',
+                inspectedAt: null,
+                inspector: null
+              },
+              {
+                id: 'R1-GO-010',
+                name: 'Complexo Habitacional São José',
+                municipality: 'Goiânia',
+                neighborhood: 'São José',
+                riskType: 'Deslizamento',
+                status: 'PENDING',
+                inspectedAt: null,
+                inspector: null
+              }
+            ],
+            inspections: []
+          }
+        ];
+
+        set(state => ({
+          inspectionRoadmaps: exampleRoadmaps
+        }));
+
+        console.log('✅ Dados de exemplo dos roadmaps carregados:', exampleRoadmaps.length, 'roadmaps');
+      },
+
+      getAreasForInspection: () => {
+        const { riskAreas, userSubmissions, removalRequests } = get();
+        
+        const getPriorityLevel = (area, submissions, requests) => {
+          let priority = 0;
+          
+          if (area.nivelAmeaca?.toLowerCase() === 'alto') priority += 50;
+          else if (area.nivelAmeaca?.toLowerCase() === 'médio') priority += 30;
+          else priority += 10;
+          
+          const areaRequests = requests.filter(req => req.areaId === area.id).length;
+          const areaSubmissions = submissions.filter(sub => sub.areaId === area.id).length;
+          priority += (areaRequests + areaSubmissions) * 5;
+          
+          const daysSinceUpdate = area.ultimaAtualizacao ? 
+            Math.floor((new Date() - new Date(area.ultimaAtualizacao)) / (1000 * 60 * 60 * 24)) : 365;
+          if (daysSinceUpdate > 180) priority += 20;
+          else if (daysSinceUpdate > 90) priority += 10;
+          
+          return priority;
+        };
+
+        const getLastInspectionDate = (area) => {
+          return area.ultimaAtualizacao || 'Não informado';
+        };
+
+        const getAreaRequestCount = (areaId, submissions, requests) => {
+          const requestCount = requests.filter(req => req.areaId === areaId).length;
+          const submissionCount = submissions.filter(sub => sub.areaId === areaId).length;
+          return requestCount + submissionCount;
+        };
+        
+        return Object.values(riskAreas).map(area => ({
+          ...area,
+          priority: getPriorityLevel(area, userSubmissions, removalRequests),
+          lastInspection: getLastInspectionDate(area),
+          requestCount: getAreaRequestCount(area.id, userSubmissions, removalRequests)
+        })).sort((a, b) => b.priority - a.priority);
+      },
+
       showVotingWarning: () => {
         console.log('⚠️ Aviso de Votação Responsável ativado');
       },
@@ -893,6 +1309,8 @@ const useAppStore = create(
         removalRequests: state.removalRequests,
         userVotes: state.userVotes,
         votingHistory: state.votingHistory,
+        withdrawHistory: state.withdrawHistory,
+        inspectionRoadmaps: state.inspectionRoadmaps,
       }),
     }
   )

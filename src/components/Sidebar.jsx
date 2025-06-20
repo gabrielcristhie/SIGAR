@@ -4,6 +4,7 @@ import CadastroAreaModal from './CadastroAreaModal';
 import EditarAreaModal from './EditarAreaModal';
 import RequestManagementModal from './RequestManagementModal';
 import RemovalRequestByIdModal from './RemovalRequestByIdModal';
+import RoadmapModal from './RoadmapModal';
 
 const Sidebar = ({ isOpen }) => {
   const { toggleLoginModal, isAuthenticated, user, getSelectedArea } = useAppStore();
@@ -11,6 +12,7 @@ const Sidebar = ({ isOpen }) => {
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isRemovalManagementOpen, setIsRemovalManagementOpen] = useState(false);
   const [isRemovalRequestOpen, setIsRemovalRequestOpen] = useState(false);
+  const [isRoadmapModalOpen, setIsRoadmapModalOpen] = useState(false);
 
   const handleAuthenticatedAction = (actionTitle) => {
     console.log('🔘 Botão clicado:', actionTitle, 'Autenticado:', isAuthenticated);
@@ -30,6 +32,9 @@ const Sidebar = ({ isOpen }) => {
       } else if (actionTitle === 'Gerenciar Solicitações') {
         console.log('🛡️ Abrindo central de gerenciamento de solicitações');
         setIsRemovalManagementOpen(true);
+      } else if (actionTitle === 'Planejar Vistorias') {
+        console.log('🗺️ Abrindo sistema de roadmap de vistorias');
+        setIsRoadmapModalOpen(true);
       } else if (actionTitle === 'Remover Área de Risco') {
         console.log('🗑️ Abrindo solicitação de remoção por ID');
         setIsRemovalRequestOpen(true);
@@ -98,6 +103,26 @@ const Sidebar = ({ isOpen }) => {
                 <i className="fas fa-tasks mr-2"></i>
                 Gerenciar Solicitações
               </button>
+              <button
+                onClick={() => handleAuthenticatedAction('Planejar Vistorias')}
+                className="w-full text-left px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 rounded-md transition-colors mb-2"
+              >
+                <i className="fas fa-route mr-2"></i>
+                Vistorias
+              </button>
+            </div>
+          )}
+
+          {isAuthenticated && (user?.role === 'inspector') && (
+            <div className="mt-8 border-t border-gray-700 pt-4">
+              <h3 className="text-md font-semibold mb-2">🔍 Área de Vistoria</h3>
+              <button
+                onClick={() => handleAuthenticatedAction('Planejar Vistorias')}
+                className="w-full text-left px-3 py-2 text-sm bg-green-600 hover:bg-green-700 rounded-md transition-colors mb-2"
+              >
+                <i className="fas fa-map-marked-alt mr-2"></i>
+                Vistorias
+              </button>
             </div>
           )}
 
@@ -145,6 +170,11 @@ const Sidebar = ({ isOpen }) => {
       <RemovalRequestByIdModal 
         isOpen={isRemovalRequestOpen} 
         onClose={() => setIsRemovalRequestOpen(false)}
+      />
+      
+      <RoadmapModal 
+        isOpen={isRoadmapModalOpen} 
+        onClose={() => setIsRoadmapModalOpen(false)}
       />
     </aside>
   );
