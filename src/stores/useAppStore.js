@@ -27,6 +27,9 @@ const useAppStore = create(
       removalRequests: [],
       isRemovalModalOpen: false,
 
+      userVotes: [],
+      votingHistory: [],
+
       tokenNotification: {
         show: false,
         tokens: 0,
@@ -38,6 +41,13 @@ const useAppStore = create(
         APPROVED: 20,
         CRITICAL_AREA: 50,
         MONTHLY_ACTIVE: 10
+      },
+
+      TOKEN_PENALTIES: {
+        BAD_FAITH_VOTE: -15,
+        FALSE_SUBMISSION: -25,
+        SPAM_REPORTS: -10,
+        REPEATED_OFFENSE: -50
       },
 
       fetchRiskAreas: async () => {
@@ -618,6 +628,101 @@ const useAppStore = create(
           rejected: removalRequests.filter(req => req.status === 'REJECTED').length,
         };
       },
+
+      submitVote: (requestId, requestType, voteType, justification) => {
+        console.log('🗳️ Submetendo voto:', { requestId, requestType, voteType });
+        
+        const vote = {
+          id: `VOTE-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          requestId,
+          requestType,
+          voteType,
+          justification,
+          votedBy: get().user?.username || 'anonymous',
+          votedAt: new Date().toISOString(),
+          status: 'PENDING_REVIEW',
+          validated: false,
+          penaltyApplied: false
+        };
+
+        set(state => ({
+          userVotes: [...state.userVotes, vote],
+          votingHistory: [...state.votingHistory, vote]
+        }));
+
+        get().showVotingWarning();
+        
+        return vote;
+      },
+
+      validateVote: (voteId, isCorrect, adminNotes = '') => {
+        console.log('✅ Validando voto:', voteId, 'Correto:', isCorrect);
+        
+        set(state => {
+          const updatedVotes = state.userVotes.map(vote => {
+            if (vote.id === voteId) {
+              const updatedVote = {
+                ...vote,
+                validated: true,
+                validatedAt: new Date().toISOString(),
+                validatedBy: state.user?.username,
+                isCorrect,
+                adminNotes
+              };
+
+              if (!isCorrect && !vote.penaltyApplied) {
+                const penalty = state.TOKEN_PENALTIES.BAD_FAITH_VOTE;
+                const newTokens = Math.max(0, state.userTokens + penalty);
+                
+                console.log('⚠️ Aplicando penalização por voto mal-intencionado:', penalty);
+                
+                get().showTokenNotification(penalty, 'Penalização por voto mal-intencionado');
+                
+                return {
+                  ...updatedVote,
+                  penaltyApplied: true,
+                  tokensDeducted: Math.abs(penalty)
+                };
+              }
+
+              return updatedVote;
+            }
+            return vote;
+          });
+
+          const updatedHistory = state.votingHistory.map(vote => 
+            vote.id === voteId ? updatedVotes.find(v => v.id === voteId) : vote
+          );
+
+          const penaltyVote = updatedVotes.find(v => v.id === voteId);
+          const tokenAdjustment = penaltyVote && !penaltyVote.isCorrect && !state.userVotes.find(v => v.id === voteId)?.penaltyApplied
+            ? state.TOKEN_PENALTIES.BAD_FAITH_VOTE
+            : 0;
+
+          return {
+            userVotes: updatedVotes,
+            votingHistory: updatedHistory,
+            userTokens: tokenAdjustment !== 0 ? Math.max(0, state.userTokens + tokenAdjustment) : state.userTokens
+          };
+        });
+      },
+
+      getVotingStats: () => {
+        const { userVotes } = get();
+        return {
+          totalVotes: userVotes.length,
+          pendingVotes: userVotes.filter(vote => !vote.validated).length,
+          correctVotes: userVotes.filter(vote => vote.validated && vote.isCorrect).length,
+          incorrectVotes: userVotes.filter(vote => vote.validated && !vote.isCorrect).length,
+          totalPenalties: userVotes
+            .filter(vote => vote.penaltyApplied)
+            .reduce((sum, vote) => sum + (vote.tokensDeducted || 0), 0)
+        };
+      },
+
+      showVotingWarning: () => {
+        console.log('⚠️ Aviso de Votação Responsável ativado');
+      },
     }),
     {
       name: 'sigar-app-storage',
@@ -628,6 +733,8 @@ const useAppStore = create(
         userTokens: state.userTokens,
         userSubmissions: state.userSubmissions,
         removalRequests: state.removalRequests,
+        userVotes: state.userVotes,
+        votingHistory: state.votingHistory,
       }),
     }
   )

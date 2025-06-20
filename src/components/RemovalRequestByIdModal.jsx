@@ -259,7 +259,6 @@ const RemovalRequestByIdModal = ({ isOpen, onClose }) => {
           </form>
         </div>
 
-        {/* Footer */}
         <div className="bg-gray-50 px-6 py-4 flex justify-between items-center">
           <div className="text-sm text-gray-600">
             * Campos obrigatórios

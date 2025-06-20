@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import useAppStore from '../stores/useAppStore';
+import VotingWarningModal from './VotingWarningModal';
 
 const RequestManagementModal = ({ isOpen, onClose }) => {
   const { 
@@ -11,11 +12,16 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
     approveSubmission,
     rejectSubmission,
     getRemovalRequestStats,
-    getSubmissionStats 
+    getSubmissionStats,
+    submitVote,
+    user,
+    isAuthenticated
   } = useAppStore();
   
   const [selectedTab, setSelectedTab] = useState('removal_requests');
   const [reviewNotes, setReviewNotes] = useState({});
+  const [isVotingWarningOpen, setIsVotingWarningOpen] = useState(false);
+  const [pendingVote, setPendingVote] = useState(null);
   
   const removalStats = getRemovalRequestStats();
   const submissionStats = getSubmissionStats();
@@ -106,6 +112,46 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
     }
     await rejectSubmission(submissionId, notes);
     setReviewNotes(prev => ({ ...prev, [submissionId]: '' }));
+  };
+
+  // Funções de Votação Pública
+  const handlePublicVote = (requestId, requestType, voteType, requestData) => {
+    if (!isAuthenticated) {
+      alert('Você precisa estar logado para votar.');
+      return;
+    }
+
+    // Configurar voto pendente e abrir modal de aviso
+    setPendingVote({ requestId, requestType, voteType, requestData });
+    setIsVotingWarningOpen(true);
+  };
+
+  const confirmVote = () => {
+    if (pendingVote) {
+      const justification = reviewNotes[`vote-${pendingVote.requestId}`] || '';
+      if (!justification.trim()) {
+        alert('Por favor, forneça uma justificativa para seu voto.');
+        return;
+      }
+
+      submitVote(
+        pendingVote.requestId,
+        pendingVote.requestType,
+        pendingVote.voteType,
+        justification
+      );
+
+      // Limpar estado
+      setPendingVote(null);
+      setReviewNotes(prev => ({ ...prev, [`vote-${pendingVote.requestId}`]: '' }));
+      
+      alert('Voto registrado com sucesso! Ele será validado pela equipe técnica.');
+    }
+  };
+
+  const cancelVote = () => {
+    setPendingVote(null);
+    setIsVotingWarningOpen(false);
   };
 
   const filteredRemovalRequests = removalRequests.filter(request => {
@@ -397,7 +443,176 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
               )}
             </div>
           )}
+
+          {selectedTab === 'public_voting' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Votação Pública - Solicitações Pendentes
+                </h3>
+              </div>
+
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="text-purple-500 text-xl">🗳️</div>
+                  <div>
+                    <h4 className="font-semibold text-purple-800">Participação Democrática</h4>
+                    <p className="text-purple-700 text-sm mt-1">
+                      Contribua com a análise técnica votando nas solicitações. Votos mal-intencionados resultam em penalização.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-medium text-gray-700">🗑️ Solicitações de Remoção</h4>
+                {removalRequests.filter(req => req.status === 'PENDING').map((request) => (
+                  <div key={`vote-removal-${request.id}`} className="bg-white border rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-lg">🗑️</span>
+                          <h5 className="font-semibold text-gray-800">{request.areaName}</h5>
+                          <span className="text-sm text-gray-500">ID: {request.areaId}</span>
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>Motivo:</strong> {getReasonText(request.reason)}
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-3">
+                          <strong>Justificativa:</strong> {request.justification}
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Justificativa do seu voto (obrigatória)
+                          </label>
+                          <textarea
+                            value={reviewNotes[`vote-${request.id}`] || ''}
+                            onChange={(e) => setReviewNotes(prev => ({
+                              ...prev,
+                              [`vote-${request.id}`]: e.target.value
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows="2"
+                            placeholder="Explique tecnicamente por que você concorda ou discorda desta solicitação..."
+                          />
+                        </div>
+
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handlePublicVote(
+                              request.id, 
+                              'REMOVAL', 
+                              'APPROVE',
+                              { type: 'REMOVAL', areaName: request.areaName, areaId: request.areaId }
+                            )}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                          >
+                            👍 Concordo com Remoção
+                          </button>
+                          <button
+                            onClick={() => handlePublicVote(
+                              request.id, 
+                              'REMOVAL', 
+                              'REJECT',
+                              { type: 'REMOVAL', areaName: request.areaName, areaId: request.areaId }
+                            )}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                          >
+                            👎 Discordo da Remoção
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <h4 className="font-medium text-gray-700 mt-6">➕ Solicitações de Adição</h4>
+                {userSubmissions.filter(sub => sub.status === 'PENDING').map((submission) => (
+                  <div key={`vote-submission-${submission.id}`} className="bg-white border rounded-lg p-4 shadow-sm">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-lg">➕</span>
+                          <h5 className="font-semibold text-gray-800">{submission.areaName}</h5>
+                          <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(submission.riskLevel)}`}>
+                            {submission.riskLevel}
+                          </span>
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>Descrição:</strong> {submission.description}
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-3">
+                          <strong>População Afetada:</strong> {submission.affectedPopulation || 'Não informado'} pessoas
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Justificativa do seu voto (obrigatória)
+                          </label>
+                          <textarea
+                            value={reviewNotes[`vote-${submission.id}`] || ''}
+                            onChange={(e) => setReviewNotes(prev => ({
+                              ...prev,
+                              [`vote-${submission.id}`]: e.target.value
+                            }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            rows="2"
+                            placeholder="Explique tecnicamente por que você concorda ou discorda desta submissão..."
+                          />
+                        </div>
+
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handlePublicVote(
+                              submission.id, 
+                              'SUBMISSION', 
+                              'APPROVE',
+                              { type: 'SUBMISSION', areaName: submission.areaName, areaId: submission.areaId }
+                            )}
+                            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                          >
+                            👍 Concordo com Adição
+                          </button>
+                          <button
+                            onClick={() => handlePublicVote(
+                              submission.id, 
+                              'SUBMISSION', 
+                              'REJECT',
+                              { type: 'SUBMISSION', areaName: submission.areaName, areaId: submission.areaId }
+                            )}
+                            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                          >
+                            👎 Discordo da Adição
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {(removalRequests.filter(req => req.status === 'PENDING').length === 0 && 
+                  userSubmissions.filter(sub => sub.status === 'PENDING').length === 0) && (
+                  <div className="text-center text-gray-500 py-12">
+                    <div className="text-4xl mb-4">🗳️</div>
+                    <p>Nenhuma solicitação pendente para votação no momento</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
+
+        <VotingWarningModal
+          isOpen={isVotingWarningOpen}
+          onClose={cancelVote}
+          onConfirm={confirmVote}
+          requestData={pendingVote?.requestData}
+        />
       </div>
     </div>,
     document.body

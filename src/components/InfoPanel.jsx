@@ -2,12 +2,23 @@ import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
 import EditarAreaModal from './EditarAreaModal';
 import RemovalRequestModal from './RemovalRequestModal';
+import VotingWarningModal from './VotingWarningModal';
 
 const InfoPanel = () => {
-  const { isInfoPanelOpen, getSelectedArea, toggleInfoPanel, isAuthenticated } = useAppStore();
+  const { 
+    isInfoPanelOpen, 
+    getSelectedArea, 
+    toggleInfoPanel, 
+    isAuthenticated,
+    submitVote,
+    user 
+  } = useAppStore();
   const selectedArea = getSelectedArea();
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isRemovalModalOpen, setIsRemovalModalOpen] = useState(false);
+  const [isVotingWarningOpen, setIsVotingWarningOpen] = useState(false);
+  const [pendingVote, setPendingVote] = useState(null);
+  const [voteJustification, setVoteJustification] = useState('');
 
   const formatField = (label, value) => {
     if (value === undefined || value === null || (Array.isArray(value) && value.length === 0) || String(value).trim() === "") {
@@ -51,6 +62,65 @@ const InfoPanel = () => {
     }
   };
 
+  const handleVotePositive = () => {
+    if (!isAuthenticated) {
+      alert('Faça login para votar nas áreas de risco.');
+      return;
+    }
+    handleVote('POSITIVE');
+  };
+
+  const handleVoteNegative = () => {
+    if (!isAuthenticated) {
+      alert('Faça login para votar nas áreas de risco.');
+      return;
+    }
+    handleVote('NEGATIVE');
+  };
+
+  const handleVote = (voteType) => {
+    console.log('🗳️ Iniciando votação:', voteType, 'para área:', selectedArea?.id);
+    
+    setPendingVote({
+      areaId: selectedArea.id,
+      voteType: voteType,
+      requestData: {
+        type: 'AREA_CLASSIFICATION',
+        areaName: selectedArea.nome,
+        areaId: selectedArea.id,
+        riskLevel: selectedArea.nivelAmeaca
+      }
+    });
+    setIsVotingWarningOpen(true);
+  };
+
+  const confirmVote = () => {
+    if (pendingVote && voteJustification.trim()) {
+      console.log('✅ Confirmando voto:', pendingVote);
+      
+      submitVote(
+        pendingVote.areaId,
+        'AREA_CLASSIFICATION',
+        pendingVote.voteType,
+        voteJustification.trim()
+      );
+
+      setPendingVote(null);
+      setVoteJustification('');
+      setIsVotingWarningOpen(false);
+      
+      alert(`Voto ${pendingVote.voteType === 'POSITIVE' ? 'positivo' : 'negativo'} registrado com sucesso!\nEle será validado pela equipe técnica.`);
+    } else {
+      alert('Por favor, forneça uma justificativa técnica para seu voto.');
+    }
+  };
+
+  const cancelVote = () => {
+    setPendingVote(null);
+    setVoteJustification('');
+    setIsVotingWarningOpen(false);
+  };
+
   if (!selectedArea || !isInfoPanelOpen) return null;
 
   return (
@@ -75,6 +145,22 @@ const InfoPanel = () => {
                 title="Solicitar remoção"
               >
                 <i className="fas fa-trash-alt text-lg"></i>
+              </button>
+              
+              <div className="border-l border-gray-300 h-6 mx-2"></div>
+              <button 
+                onClick={handleVotePositive}
+                className="text-green-600 hover:text-green-800 transition-colors p-1"
+                title="Votar Positivamente - Concordo com a classificação desta área"
+              >
+                <i className="fas fa-thumbs-up text-lg"></i>
+              </button>
+              <button 
+                onClick={handleVoteNegative}
+                className="text-red-600 hover:text-red-800 transition-colors p-1"
+                title="Votar Negativamente - Discordo da classificação desta área"
+              >
+                <i className="fas fa-thumbs-down text-lg"></i>
               </button>
             </>
           )}
@@ -176,6 +262,13 @@ const InfoPanel = () => {
         isOpen={isRemovalModalOpen}
         onClose={() => setIsRemovalModalOpen(false)}
         areaToRemove={selectedArea}
+      />
+      
+      <VotingWarningModal
+        isOpen={isVotingWarningOpen}
+        onClose={cancelVote}
+        onConfirm={confirmVote}
+        requestData={pendingVote?.requestData}
       />
     </aside>
   );
