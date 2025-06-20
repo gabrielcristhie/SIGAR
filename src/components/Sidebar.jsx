@@ -93,7 +93,7 @@ const Sidebar = ({ isOpen }) => {
             </button>
           </nav>
           
-          {isAuthenticated && user?.role === 'admin' && (
+          {isAuthenticated && user?.role === 'admin' && user?.username !== 'demo' && (
             <div className="mt-8 border-t border-gray-700 pt-4">
               <h3 className="text-md font-semibold mb-2">🛡️ Área Administrativa</h3>
               <button
