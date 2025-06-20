@@ -68,7 +68,7 @@ const WithdrawModal = ({ isOpen, onClose }) => {
         ? { pixKey: withdrawForm.pixKey }
         : withdrawForm.bankAccount;
 
-      const withdrawal = processWithdrawal({
+      processWithdrawal({
         coins,
         paymentMethod: withdrawForm.paymentMethod,
         accountInfo

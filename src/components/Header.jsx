@@ -2,7 +2,7 @@ import React from 'react';
 import useAppStore from '../stores/useAppStore';
 
 const Header = ({ onToggleMenu }) => {
-  const { isAuthenticated, user, logout, toggleLoginModal, userTokens, toggleTokenModal } = useAppStore();
+  const { isAuthenticated, user, logout, userTokens, toggleTokenModal } = useAppStore();
 
   const handleLogout = () => {
     logout();

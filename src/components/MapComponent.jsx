@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
 import useAppStore from '../stores/useAppStore';
 
 const MapComponent = () => {
-  const { riskAreas, selectArea, fetchRiskAreas, isLoginModalOpen, isAuthenticated } = useAppStore();
+  const { riskAreas, selectArea, fetchRiskAreas, isLoginModalOpen } = useAppStore();
   const goiasCenter = [-15.9339, -49.8333];
-  const [riskConfirmations, setRiskConfirmations] = useState({});
 
   useEffect(() => {
     fetchRiskAreas();
@@ -41,13 +40,6 @@ const MapComponent = () => {
       case 'baixo': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
-  };
-
-  const handleRiskConfirmation = (areaId, confirmed) => {
-    setRiskConfirmations(prev => ({
-      ...prev,
-      [areaId]: confirmed
-    }));
   };
 
   return (

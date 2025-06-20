@@ -65,7 +65,7 @@ const useAppStore = create(
           try {
             const response = await apiService.getRiskAreas();
             set({ riskAreas: response.data, loading: false });
-          } catch (apiError) {
+          } catch {
             if (import.meta.env.VITE_DEBUG_MODE === 'true') {
               console.info('🔄 Modo desenvolvimento: usando dados mockados (backend não conectado)');
             }
@@ -78,11 +78,9 @@ const useAppStore = create(
       },
 
       selectArea: (areaId) => {
-        console.log('🎯 Store: selectArea chamado com ID:', areaId);
         set({ 
           selectedAreaId: areaId
         });
-        console.log('✅ Store: selectedAreaId definido como:', areaId);
       },
 
       toggleInfoPanel: (isOpen) => {
@@ -93,9 +91,6 @@ const useAppStore = create(
       },
 
       toggleLoginModal: (isOpen, actionTitle = '') => {
-        if (import.meta.env.VITE_DEBUG_MODE === 'true') {
-          console.log('🔐 Modal login:', isOpen ? 'ABRIR' : 'FECHAR', actionTitle);
-        }
         set({ 
           isLoginModalOpen: isOpen,
           loginActionTitle: actionTitle 
@@ -119,7 +114,7 @@ const useAppStore = create(
               loginActionTitle: ''
             });
             return { success: true };
-          } catch (apiError) {
+          } catch {
             if (import.meta.env.VITE_DEBUG_MODE === 'true') {
               console.info('🔐 Modo desenvolvimento: simulando login (backend não conectado)');
             }
@@ -180,7 +175,6 @@ const useAppStore = create(
         const { riskAreas, selectedAreaId } = get();
         if (!selectedAreaId) return null;
         const area = Object.values(riskAreas).find(area => area.id === selectedAreaId);
-        console.log('🔍 Store: getSelectedArea', { selectedAreaId, area: area || 'não encontrada' });
         return area || null;
       },
 
@@ -451,7 +445,6 @@ const useAppStore = create(
 
         get().showTokenNotification(tokensGanhos, 'Área submetida com sucesso!');
 
-        console.log('🎁 Tokens ganhos por submissão:', tokensGanhos);
         return submission;
       },
 
@@ -514,7 +507,6 @@ const useAppStore = create(
       },
 
       approveSubmission: (submissionId, reviewNotes = '') => {
-        console.log('✅ Aprovando solicitação de adição:', submissionId);
         set(state => {
           const updatedSubmissions = state.userSubmissions.map(sub => {
             if (sub.id === submissionId) {
@@ -541,7 +533,6 @@ const useAppStore = create(
       },
 
       rejectSubmission: (submissionId, reviewNotes = '') => {
-        console.log('❌ Rejeitando solicitação de adição:', submissionId);
         set(state => {
           const updatedSubmissions = state.userSubmissions.map(sub => {
             if (sub.id === submissionId) {
@@ -586,7 +577,6 @@ const useAppStore = create(
 
         const currentState = get();
         if (!currentState.inspectionRoadmaps || currentState.inspectionRoadmaps.length === 0) {
-          console.log('🚀 Inicializando dados de exemplo para roadmaps');
           get().loadExampleRoadmaps();
         }
 
@@ -608,7 +598,7 @@ const useAppStore = create(
                 loading: false 
               };
             });
-          } catch (apiError) {
+          } catch {
             if (import.meta.env.VITE_DEBUG_MODE === 'true') {
               console.info('🔄 Modo desenvolvimento: adicionando área localmente (backend não conectado)');
             }
@@ -630,7 +620,6 @@ const useAppStore = create(
       },
 
       updateRiskArea: async (areaId, updatedArea) => {
-        console.log('🔄 Store: updateRiskArea chamado', { areaId, updatedArea });
         set({ loading: true, error: null });
         try {
           try {
@@ -648,7 +637,7 @@ const useAppStore = create(
               return { loading: false };
             });
             console.log('✅ Store: Área atualizada via API');
-          } catch (apiError) {
+          } catch {
             if (import.meta.env.VITE_DEBUG_MODE === 'true') {
               console.info('🔄 Modo desenvolvimento: atualizando área localmente (backend não conectado)');
             }
@@ -705,7 +694,7 @@ const useAppStore = create(
       },
 
       approveRemovalRequest: (requestId, reviewNotes = '') => {
-        const { removalRequests, riskAreas } = get();
+        const { removalRequests } = get();
         const request = removalRequests.find(req => req.id === requestId);
         
         if (!request) return false;
@@ -817,7 +806,6 @@ const useAppStore = create(
 
               if (!isCorrect && !vote.penaltyApplied) {
                 const penalty = state.TOKEN_PENALTIES.BAD_FAITH_VOTE;
-                const newTokens = Math.max(0, state.userTokens + penalty);
                 
                 console.log('⚠️ Aplicando penalização por voto mal-intencionado:', penalty);
                 
@@ -908,7 +896,7 @@ const useAppStore = create(
       },
 
       processWithdrawal: (withdrawData) => {
-        const { userTokens, withdrawHistory, COIN_VALUE } = get();
+        const { userTokens, COIN_VALUE } = get();
         const { coins, paymentMethod, accountInfo } = withdrawData;
         
         if (coins > userTokens) {
@@ -1247,7 +1235,7 @@ const useAppStore = create(
           }
         ];
 
-        set(state => ({
+        set(() => ({
           inspectionRoadmaps: exampleRoadmaps
         }));
 

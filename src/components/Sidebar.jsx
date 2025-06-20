@@ -15,34 +15,26 @@ const Sidebar = ({ isOpen }) => {
   const [isRoadmapModalOpen, setIsRoadmapModalOpen] = useState(false);
 
   const handleAuthenticatedAction = (actionTitle) => {
-    console.log('🔘 Botão clicado:', actionTitle, 'Autenticado:', isAuthenticated);
     if (isAuthenticated) {
       if (actionTitle === 'Incluir Área de Risco') {
         setIsCadastroModalOpen(true);
       } else if (actionTitle === 'Alterar Área de Risco') {
         const selectedArea = getSelectedArea();
-        console.log('📋 Área selecionada para edição:', selectedArea);
         if (selectedArea) {
-          console.log('✅ Abrindo modal de edição');
           setIsEditarModalOpen(true);
         } else {
-          console.log('❌ Nenhuma área selecionada');
           alert('Selecione uma área no mapa primeiro para editá-la.');
         }
       } else if (actionTitle === 'Gerenciar Solicitações') {
-        console.log('🛡️ Abrindo central de gerenciamento de solicitações');
         setIsRemovalManagementOpen(true);
       } else if (actionTitle === 'Planejar Vistorias') {
-        console.log('🗺️ Abrindo sistema de roadmap de vistorias');
         setIsRoadmapModalOpen(true);
       } else if (actionTitle === 'Remover Área de Risco') {
-        console.log('🗑️ Abrindo solicitação de remoção por ID');
         setIsRemovalRequestOpen(true);
       } else {
         alert(`Funcionalidade "${actionTitle}" será implementada em breve.`);
       }
     } else {
-      console.log('🔐 Abrindo modal de login para:', actionTitle);
       toggleLoginModal(true, actionTitle);
     }
   };

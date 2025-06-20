@@ -21,7 +21,6 @@ const RoadmapModal = ({ isOpen, onClose }) => {
   }, [isOpen, inspectionRoadmaps, loadExampleRoadmaps]);
 
   const [activeTab, setActiveTab] = useState('roadmaps');
-  const [isCreating, setIsCreating] = useState(false);
   const [selectedAreas, setSelectedAreas] = useState([]);
   const [roadmapForm, setRoadmapForm] = useState({
     title: '',
@@ -75,7 +74,6 @@ const RoadmapModal = ({ isOpen, onClose }) => {
       estimatedDays: 3
     });
     setSelectedAreas([]);
-    setIsCreating(false);
     alert('Roadmap de vistoria criado com sucesso!');
   };
 

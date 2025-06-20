@@ -7,9 +7,7 @@ const TokenModal = ({ isOpen, onClose }) => {
   const { 
     userTokens, 
     userSubmissions, 
-    removalRequests, 
     getUserStats, 
-    updateSubmissionStatus, 
     getRemovalRequestStats,
     getWithdrawableAmount,
     canWithdraw,
@@ -47,15 +45,6 @@ const TokenModal = ({ isOpen, onClose }) => {
       case 'PENDING': return 'text-yellow-600 bg-yellow-100';
       default: return 'text-gray-600 bg-gray-100';
     }
-  };
-
-  const simulateReview = (submissionId, action) => {
-    const status = action === 'approve' ? 'APPROVED' : 'REJECTED';
-    const notes = action === 'approve' 
-      ? 'Área verificada e confirmada pela equipe técnica.' 
-      : 'Área não atende aos critérios de risco estabelecidos.';
-    
-    updateSubmissionStatus(submissionId, status, notes);
   };
 
   if (!isOpen) return null;

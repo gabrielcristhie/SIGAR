@@ -10,8 +10,7 @@ const InfoPanel = () => {
     getSelectedArea, 
     toggleInfoPanel, 
     isAuthenticated,
-    submitVote,
-    user 
+    submitVote
   } = useAppStore();
   const selectedArea = getSelectedArea();
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);

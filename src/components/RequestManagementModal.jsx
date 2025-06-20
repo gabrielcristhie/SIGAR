@@ -15,7 +15,6 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
     getSubmissionStats,
     getAreasOrderedByRequests,
     submitVote,
-    user,
     isAuthenticated
   } = useAppStore();
   
@@ -43,15 +42,6 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
       case 'MEDIUM': return 'text-yellow-600 bg-yellow-100';
       case 'LOW': return 'text-green-600 bg-green-100';
       default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getPriorityText = (priority) => {
-    switch (priority) {
-      case 'HIGH': return 'Alta';
-      case 'MEDIUM': return 'Média';
-      case 'LOW': return 'Baixa';
-      default: return 'Normal';
     }
   };
 
