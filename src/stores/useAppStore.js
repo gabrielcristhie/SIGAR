@@ -224,6 +224,66 @@ const useAppStore = create(
                 reviewedAt: null,
                 reviewedBy: null,
                 reviewNotes: ''
+              },
+              {
+                id: 'SUB-DEMO-004',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                description: 'Atualização de dados: Novas construções irregulares na área de risco.',
+                riskLevel: 'HIGH',
+                affectedPopulation: 250,
+                submissionType: 'UPDATE_AREA',
+                status: 'PENDING',
+                submittedAt: '2025-06-18T16:15:00.000Z',
+                tokensEarned: 5,
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ''
+              },
+              {
+                id: 'SUB-DEMO-005',
+                areaId: 'R2-AP-015',
+                areaName: 'Margem do Rio Meia Ponte',
+                description: 'Relatório de erosão acelerada na margem do rio.',
+                riskLevel: 'HIGH',
+                affectedPopulation: 180,
+                submissionType: 'UPDATE_AREA',
+                status: 'PENDING',
+                submittedAt: '2025-06-19T12:30:00.000Z',
+                tokensEarned: 5,
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ''
+              },
+              {
+                id: 'SUB-DEMO-006',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                description: 'Monitoramento comunitário: Identificação de novas trincas no terreno.',
+                riskLevel: 'HIGH',
+                affectedPopulation: 200,
+                submissionType: 'INCIDENT_REPORT',
+                status: 'APPROVED',
+                submittedAt: '2025-06-17T09:20:00.000Z',
+                tokensEarned: 25,
+                reviewedAt: '2025-06-18T11:45:00.000Z',
+                reviewedBy: 'Geól. Roberto Lima',
+                reviewNotes: 'Relatório confirmado. Trincas indicam agravamento da instabilidade.'
+              },
+              {
+                id: 'SUB-DEMO-007',
+                areaId: 'R2-AP-015',
+                areaName: 'Margem do Rio Meia Ponte',
+                description: 'Solicitação de reclassificação para Alto Risco devido a mudanças no leito do rio.',
+                riskLevel: 'HIGH',
+                affectedPopulation: 180,
+                submissionType: 'RECLASSIFICATION',
+                status: 'PENDING',
+                submittedAt: '2025-06-20T08:10:00.000Z',
+                tokensEarned: 5,
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: ''
               }
             ],
             removalRequests: [
@@ -249,6 +309,76 @@ const useAppStore = create(
                 createdAt: '2025-06-16T16:30:00.000Z',
                 reason: 'INCORRECT_CLASSIFICATION',
                 justification: 'Após nova análise, verificou-se que a área não apresenta características de risco significativo.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'HIGH'
+              },
+              {
+                id: 'REM-DEMO-003',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                requestedBy: 'Maria Santos',
+                createdAt: '2025-06-18T09:15:00.000Z',
+                reason: 'SAFETY_CONCERN',
+                justification: 'Moradores relatam aumento de trincas após últimas chuvas. Situação está se agravando rapidamente.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'HIGH'
+              },
+              {
+                id: 'REM-DEMO-004',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                requestedBy: 'João Silva',
+                createdAt: '2025-06-19T14:20:00.000Z',
+                reason: 'IMMEDIATE_DANGER',
+                justification: 'Casa nº 45 apresenta rachaduras severas na parede. Família evacuada preventivamente.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'HIGH'
+              },
+              {
+                id: 'REM-DEMO-005',
+                areaId: 'R2-AP-015',
+                areaName: 'Margem do Rio Meia Ponte',
+                requestedBy: 'Ana Costa',
+                createdAt: '2025-06-17T11:40:00.000Z',
+                reason: 'FLOODING_RISK',
+                justification: 'Nível do rio subiu significativamente após chuvas. Várias casas com água no quintal.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'MEDIUM'
+              },
+              {
+                id: 'REM-DEMO-006',
+                areaId: 'R2-AP-015',
+                areaName: 'Margem do Rio Meia Ponte',
+                requestedBy: 'Carlos Oliveira',
+                createdAt: '2025-06-19T08:30:00.000Z',
+                reason: 'EROSION_CONCERN',
+                justification: 'Erosão da margem está avançando em direção às casas. Já perdemos 2 metros de terreno.',
+                status: 'PENDING',
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNotes: '',
+                priority: 'HIGH'
+              },
+              {
+                id: 'REM-DEMO-007',
+                areaId: 'R1-GO-001',
+                areaName: 'Encosta do Morro da Cruz',
+                requestedBy: 'Presidente Associação Moradores',
+                createdAt: '2025-06-20T07:45:00.000Z',
+                reason: 'COLLECTIVE_REQUEST',
+                justification: 'Em nome de 35 famílias, solicitamos reavaliação urgente da área. Situação crítica após chuvas intensas.',
                 status: 'PENDING',
                 reviewedAt: null,
                 reviewedBy: null,
@@ -718,6 +848,34 @@ const useAppStore = create(
             .filter(vote => vote.penaltyApplied)
             .reduce((sum, vote) => sum + (vote.tokensDeducted || 0), 0)
         };
+      },
+
+      getAreasOrderedByRequests: () => {
+        const { riskAreas, removalRequests, userSubmissions } = get();
+        
+        const areaCounts = {};
+        
+        removalRequests.forEach(request => {
+          const areaId = request.areaId;
+          areaCounts[areaId] = (areaCounts[areaId] || 0) + 1;
+        });
+        
+        userSubmissions.forEach(submission => {
+          if (submission.areaId) {
+            const areaId = submission.areaId;
+            areaCounts[areaId] = (areaCounts[areaId] || 0) + 1;
+          }
+        });
+        
+        const areasWithCounts = Object.values(riskAreas).map(area => ({
+          ...area,
+          requestCount: areaCounts[area.id] || 0,
+          removalRequests: removalRequests.filter(req => req.areaId === area.id),
+          additionRequests: userSubmissions.filter(sub => sub.areaId === area.id),
+          totalRequests: (areaCounts[area.id] || 0)
+        }));
+        
+        return areasWithCounts.sort((a, b) => b.requestCount - a.requestCount);
       },
 
       showVotingWarning: () => {

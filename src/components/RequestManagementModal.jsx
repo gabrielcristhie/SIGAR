@@ -13,18 +13,20 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
     rejectSubmission,
     getRemovalRequestStats,
     getSubmissionStats,
+    getAreasOrderedByRequests,
     submitVote,
     user,
     isAuthenticated
   } = useAppStore();
   
-  const [selectedTab, setSelectedTab] = useState('removal_requests');
+  const [selectedTab, setSelectedTab] = useState('areas');
   const [reviewNotes, setReviewNotes] = useState({});
   const [isVotingWarningOpen, setIsVotingWarningOpen] = useState(false);
   const [pendingVote, setPendingVote] = useState(null);
   
   const removalStats = getRemovalRequestStats();
   const submissionStats = getSubmissionStats();
+  const areasOrderedByRequests = getAreasOrderedByRequests();
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -204,14 +206,24 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
               <div className="text-sm text-gray-600">Pendentes</div>
             </div>
             <div className="bg-white rounded-lg p-3 text-center border">
-              <div className="text-2xl font-bold text-blue-600">{removalStats.approved + submissionStats.approved}</div>
-              <div className="text-sm text-gray-600">Aprovadas</div>
+              <div className="text-2xl font-bold text-blue-600">{areasOrderedByRequests.length}</div>
+              <div className="text-sm text-gray-600">Áreas Monitoradas</div>
             </div>
           </div>
         </div>
 
         <div className="bg-gray-100 px-6 py-3 border-b">
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedTab('areas')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedTab === 'areas'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              🏢 Áreas por Solicitações ({areasOrderedByRequests.length})
+            </button>
             <button
               onClick={() => setSelectedTab('removal_requests')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -257,6 +269,149 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-280px)]">
+          {selectedTab === 'areas' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Áreas Ordenadas por Quantidade de Solicitações
+                </h3>
+                <div className="text-sm text-gray-600">
+                  Total: {areasOrderedByRequests.length} áreas
+                </div>
+              </div>
+
+              {areasOrderedByRequests.length === 0 ? (
+                <div className="text-center text-gray-500 py-12">
+                  <div className="text-4xl mb-4">🏢</div>
+                  <p>Nenhuma área encontrada</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {areasOrderedByRequests.map((area) => (
+                    <div key={area.id} className="bg-white border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-3">
+                            <h4 className="text-lg font-semibold text-gray-800">
+                              {area.nome}
+                            </h4>
+                            <span className="text-sm text-gray-600">
+                              (ID: {area.id})
+                            </span>
+                            <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
+                              area.nivelAmeaca?.toLowerCase() === 'alto' 
+                                ? 'bg-red-100 text-red-800 border-red-200'
+                                : area.nivelAmeaca?.toLowerCase() === 'médio'
+                                ? 'bg-orange-100 text-orange-800 border-orange-200'
+                                : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                            }`}>
+                              {area.nivelAmeaca} Risco
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+                            <div>
+                              <strong>Município:</strong> {area.municipio}
+                            </div>
+                            <div>
+                              <strong>Bairro:</strong> {area.bairro}
+                            </div>
+                            <div>
+                              <strong>Tipo de Risco:</strong> {area.tipoRisco}
+                            </div>
+                            <div>
+                              <strong>Responsável:</strong> {area.responsavelDC}
+                            </div>
+                          </div>
+
+                          {area.descricao && (
+                            <p className="text-sm text-gray-700 mb-4 line-clamp-2">
+                              {area.descricao}
+                            </p>
+                          )}
+
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <h5 className="font-medium text-gray-800 mb-2">
+                              Detalhes das Solicitações:
+                            </h5>
+                            <div className="space-y-2 text-sm">
+                              {area.removalRequests.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                                  <span>
+                                    {area.removalRequests.length} solicitação(ões) de remoção
+                                  </span>
+                                </div>
+                              )}
+                              {area.additionRequests.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3 h-3 bg-blue-500 rounded-full"></span>
+                                  <span>
+                                    {area.additionRequests.length} solicitação(ões) de adição/modificação
+                                  </span>
+                                </div>
+                              )}
+                              {area.requestCount === 0 && (
+                                <div className="flex items-center gap-2 text-gray-500">
+                                  <span className="w-3 h-3 bg-gray-300 rounded-full"></span>
+                                  <span>Nenhuma solicitação registrada</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="ml-4">
+                          <div className={`text-center p-3 rounded-lg ${
+                            area.requestCount > 5 
+                              ? 'bg-red-100 border border-red-200'
+                              : area.requestCount > 2
+                              ? 'bg-orange-100 border border-orange-200'
+                              : area.requestCount > 0
+                              ? 'bg-yellow-100 border border-yellow-200'
+                              : 'bg-gray-100 border border-gray-200'
+                          }`}>
+                            <div className={`text-2xl font-bold ${
+                              area.requestCount > 5 
+                                ? 'text-red-700'
+                                : area.requestCount > 2
+                                ? 'text-orange-700'
+                                : area.requestCount > 0
+                                ? 'text-yellow-700'
+                                : 'text-gray-500'
+                            }`}>
+                              {area.requestCount}
+                            </div>
+                            <div className="text-xs font-medium text-gray-600">
+                              {area.requestCount === 1 ? 'Solicitação' : 'Solicitações'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {area.requestCount > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+                          <button
+                            onClick={() => setSelectedTab('removal_requests')}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Ver Solicitações
+                          </button>
+                          <button
+                            onClick={() => console.log('Ver área no mapa:', area.id)}
+                            className="px-3 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
+                          >
+                            Ver no Mapa
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {(selectedTab.startsWith('removal') || selectedTab === 'removal_requests') && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
