@@ -222,17 +222,6 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
               🗑️ Remoções ({removalStats.total})
             </button>
             <button
-              onClick={() => setSelectedTab('removal_pending')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedTab === 'removal_pending'
-                  ? 'bg-yellow-600 text-white'
-                  : 'bg-white text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              ⏳ Pendentes ({removalStats.pending})
-            </button>
-
-            <button
               onClick={() => setSelectedTab('submissions')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedTab === 'submissions'
