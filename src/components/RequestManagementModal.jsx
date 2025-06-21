@@ -106,14 +106,12 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
     setReviewNotes(prev => ({ ...prev, [submissionId]: '' }));
   };
 
-  // Funções de Votação Pública
   const handlePublicVote = (requestId, requestType, voteType, requestData) => {
     if (!isAuthenticated) {
       alert('Você precisa estar logado para votar.');
       return;
     }
 
-    // Configurar voto pendente e abrir modal de aviso
     setPendingVote({ requestId, requestType, voteType, requestData });
     setIsVotingWarningOpen(true);
   };
@@ -133,7 +131,6 @@ const RequestManagementModal = ({ isOpen, onClose }) => {
         justification
       );
 
-      // Limpar estado
       setPendingVote(null);
       setReviewNotes(prev => ({ ...prev, [`vote-${pendingVote.requestId}`]: '' }));
       

@@ -4,20 +4,44 @@ import MapComponent from './components/MapComponent';
 import LoginModal from './components/LoginModal';
 import LoadingOverlay from './components/LoadingOverlay';
 import Notification from './components/Notification';
-import useAppStore from './stores/useAppStore';
+import TokenNotification from './components/TokenNotification';
+import {
+  useAuthStore,
+  useRiskAreasStore,
+  useTokenStore,
+  useSubmissionsStore,
+  useRoadmapStore
+} from './stores';
 import 'leaflet/dist/leaflet.css';
 
 function App() {
+  const { initializeAuth } = useAuthStore();
   const { 
     isInfoPanelOpen, 
     toggleInfoPanel,
     getSelectedArea,
-    initialize
-  } = useAppStore();
+    fetchRiskAreas
+  } = useRiskAreasStore();
+  const { tokenNotification } = useTokenStore();
+  const { loadUserData, setUserData } = useSubmissionsStore();
+  const { loadExampleRoadmaps } = useRoadmapStore();
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    const initializeApp = async () => {
+      initializeAuth();
+      await fetchRiskAreas();
+      
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        const userData = loadUserData('demo');
+        setUserData(userData);
+      }
+
+      loadExampleRoadmaps();
+    };
+
+    initializeApp();
+  }, [initializeAuth, fetchRiskAreas, loadUserData, setUserData, loadExampleRoadmaps]);
 
   return (
     <>
@@ -32,6 +56,7 @@ function App() {
       <LoginModal />
       <LoadingOverlay />
       <Notification />
+      {tokenNotification.show && <TokenNotification />}
     </>
   );
 }
