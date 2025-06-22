@@ -25,10 +25,8 @@ const MapComponent = ({ isDrawMode = false, onDrawModeChange }) => {
   };
 
   const handleViewDetails = (areaData) => {
-    if (!isLoginModalOpen) {
-      selectArea(areaData.id);
-      toggleInfoPanel(true);
-    }
+    selectArea(areaData.id);
+    toggleInfoPanel(true);
   };
 
   const handleAreaDrawn = (areaData) => {
@@ -161,31 +159,13 @@ const MapComponent = ({ isDrawMode = false, onDrawModeChange }) => {
                 )}
 
                 <div className="border-t border-gray-200 mt-4 pt-4">
-                  <div className="flex items-center justify-between mb-3 space-x-4">
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-center">
                     <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert('Funcionalidade de envio de anexo será implementada em breve.');
-                      }}
-                      className="flex items-center text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                      onClick={() => handleViewDetails(areaData)}
+                      className="px-6 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg w-full"
                     >
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                      </svg>
-                      Enviar anexo
+                      Ver detalhes
                     </button>
-
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleViewDetails(areaData)}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        Ver detalhes
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useAppStore from '../stores/useAppStore';
+import useRiskAreasStore from '../stores/useRiskAreasStore';
 import EditarAreaModal from './EditarAreaModal';
 import RemovalRequestModal from './RemovalRequestModal';
 import VotingWarningModal from './VotingWarningModal';
@@ -8,10 +9,14 @@ const InfoPanel = () => {
   const { 
     isInfoPanelOpen, 
     getSelectedArea, 
-    toggleInfoPanel, 
+    toggleInfoPanel
+  } = useRiskAreasStore();
+  
+  const { 
     isAuthenticated,
     submitVote
   } = useAppStore();
+  
   const selectedArea = getSelectedArea();
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isRemovalModalOpen, setIsRemovalModalOpen] = useState(false);
