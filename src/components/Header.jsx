@@ -2,10 +2,14 @@ import React from 'react';
 import useAppStore from '../stores/useAppStore';
 
 const Header = ({ onToggleMenu }) => {
-  const { isAuthenticated, user, logout, userTokens, toggleTokenModal } = useAppStore();
+  const { isAuthenticated, user, logout, userTokens, toggleTokenModal, toggleLoginModal } = useAppStore();
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleLogin = () => {
+    toggleLoginModal(true, 'Fazer Login');
   };
 
   return (
@@ -65,6 +69,20 @@ const Header = ({ onToggleMenu }) => {
                 <i className="fas fa-sign-out-alt"></i>
               </button>
             </div>
+          </div>
+        )}
+
+        {!isAuthenticated && (
+          <div className="flex items-center">
+            <button
+              onClick={handleLogin}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium text-sm"
+              title="Fazer Login"
+            >
+              <i className="fas fa-sign-in-alt text-sm"></i>
+              <span className="hidden sm:inline">Entrar</span>
+              <span className="sm:hidden">Login</span>
+            </button>
           </div>
         )}
       </div>
