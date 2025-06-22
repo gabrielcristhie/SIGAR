@@ -6,18 +6,27 @@ import RequestManagementModal from './RequestManagementModal';
 import RemovalRequestByIdModal from './RemovalRequestByIdModal';
 import RoadmapModal from './RoadmapModal';
 
-const Sidebar = ({ isOpen }) => {
+const Sidebar = ({ isOpen, onDrawModeChange, isDrawMode = false }) => {
   const { toggleLoginModal, isAuthenticated, user, getSelectedArea } = useAppStore();
   const [isCadastroModalOpen, setIsCadastroModalOpen] = useState(false);
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isRemovalManagementOpen, setIsRemovalManagementOpen] = useState(false);
   const [isRemovalRequestOpen, setIsRemovalRequestOpen] = useState(false);
   const [isRoadmapModalOpen, setIsRoadmapModalOpen] = useState(false);
+  const [isIncluirAreaExpanded, setIsIncluirAreaExpanded] = useState(false);
 
   const handleAuthenticatedAction = (actionTitle) => {
     if (isAuthenticated) {
       if (actionTitle === 'Incluir Área de Risco') {
+        setIsIncluirAreaExpanded(!isIncluirAreaExpanded);
+      } else if (actionTitle === 'Incluir via Formulário') {
         setIsCadastroModalOpen(true);
+        setIsIncluirAreaExpanded(false);
+      } else if (actionTitle === 'Incluir via Desenho') {
+        if (onDrawModeChange) {
+          onDrawModeChange(!isDrawMode);
+        }
+        setIsIncluirAreaExpanded(false);
       } else if (actionTitle === 'Alterar Área de Risco') {
         const selectedArea = getSelectedArea();
         if (selectedArea) {
@@ -57,19 +66,55 @@ const Sidebar = ({ isOpen }) => {
           )}
           
           <nav>
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAuthenticatedAction('Incluir Área de Risco');
-              }}
-              className="menu-item flex items-center py-2.5 px-4 rounded-lg hover:bg-gray-700 w-full text-left"
-              type="button"
-            >
-              <i className="fas fa-plus-circle w-6 mr-2"></i> 
-              Incluir Área de Risco
-              {!isAuthenticated && <i className="fas fa-lock ml-auto text-gray-400"></i>}
-            </button>
+            <div className="mb-2">
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleAuthenticatedAction('Incluir Área de Risco');
+                }}
+                className="menu-item flex items-center py-2.5 px-4 rounded-lg hover:bg-gray-700 w-full text-left"
+                type="button"
+              >
+                <i className="fas fa-plus-circle w-6 mr-2"></i> 
+                Incluir Área de Risco
+                <i className={`fas fa-chevron-${isIncluirAreaExpanded ? 'up' : 'down'} ml-auto text-gray-400`}></i>
+                {!isAuthenticated && <i className="fas fa-lock ml-auto text-gray-400"></i>}
+              </button>
+              
+              {isIncluirAreaExpanded && isAuthenticated && (
+                <div className="ml-4 mt-2 space-y-1">
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAuthenticatedAction('Incluir via Formulário');
+                    }}
+                    className="flex items-center py-2 px-3 rounded-md hover:bg-gray-600 w-full text-left text-sm"
+                    type="button"
+                  >
+                    <i className="fas fa-edit w-5 mr-2 text-blue-400"></i> 
+                    📋 Via Formulário
+                  </button>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleAuthenticatedAction('Incluir via Desenho');
+                    }}
+                    className={`flex items-center py-2 px-3 rounded-md hover:bg-gray-600 w-full text-left text-sm ${
+                      isDrawMode ? 'bg-green-600' : ''
+                    }`}
+                    type="button"
+                  >
+                    <i className="fas fa-pencil-alt w-5 mr-2 text-green-400"></i> 
+                    {isDrawMode ? '🔒 Sair do Desenho' : '✏️ Desenhar no Mapa'}
+                  </button>
+                </div>
+              )}
+            </div>
+            
             <button 
               onClick={(e) => {
                 e.preventDefault();

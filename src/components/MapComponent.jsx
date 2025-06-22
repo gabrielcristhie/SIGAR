@@ -1,9 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup } from 'react-leaflet';
-import useAppStore from '../stores/useAppStore';
+import useRiskAreasStore from '../stores/useRiskAreasStore';
+import useAuthStore from '../stores/useAuthStore';
+import DrawControl from './DrawControl';
+import AddAreaModal from './AddAreaModal';
 
-const MapComponent = () => {
-  const { riskAreas, selectArea, fetchRiskAreas, isLoginModalOpen } = useAppStore();
+const MapComponent = ({ isDrawMode = false, onDrawModeChange }) => {
+  const { riskAreas, selectArea, fetchRiskAreas, toggleInfoPanel } = useRiskAreasStore();
+  const { isLoginModalOpen } = useAuthStore();
+  const mapRef = useRef(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newAreaData, setNewAreaData] = useState(null);
+  
   const goiasCenter = [-15.9339, -49.8333];
 
   useEffect(() => {
@@ -19,9 +27,20 @@ const MapComponent = () => {
   const handleViewDetails = (areaData) => {
     if (!isLoginModalOpen) {
       selectArea(areaData.id);
-      const { toggleInfoPanel } = useAppStore.getState();
       toggleInfoPanel(true);
     }
+  };
+
+  const handleAreaDrawn = (areaData) => {
+    setNewAreaData(areaData);
+    setIsAddModalOpen(true);
+    if (onDrawModeChange) {
+      onDrawModeChange(false);
+    }
+  };
+
+  const handleMapReady = (map) => {
+    mapRef.current = map;
   };
 
   const getRiskColor = (nivelAmeaca) => {
@@ -55,10 +74,17 @@ const MapComponent = () => {
         boxZoom={true}
         keyboard={true}
         dragging={true}
+        whenReady={({ target }) => handleMapReady(target)}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+
+        <DrawControl 
+          map={mapRef.current} 
+          onAreaDrawn={handleAreaDrawn}
+          isEnabled={isDrawMode}
         />
 
         {Object.values(riskAreas).map((areaData) => (
@@ -167,6 +193,12 @@ const MapComponent = () => {
           </Polygon>
         ))}
       </MapContainer>
+      
+      <AddAreaModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        areaData={newAreaData}
+      />
     </div>
   );
 };

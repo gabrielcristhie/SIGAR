@@ -148,6 +148,32 @@ const useRiskAreasStore = create(
         });
       },
 
+      addArea: async (newAreaData) => {
+        set({ loading: true, error: null });
+        try {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          set((state) => {
+            const newKey = `area_${Date.now()}`;
+            const newRiskAreas = {
+              ...state.riskAreas,
+              [newKey]: newAreaData
+            };
+            
+            return {
+              riskAreas: newRiskAreas,
+              loading: false
+            };
+          });
+          
+          return true;
+        } catch (error) {
+          set({ error: 'Erro ao adicionar área de risco', loading: false });
+          console.error('Erro ao adicionar área:', error);
+          return false;
+        }
+      },
+
       clearError: () => {
         set({ error: null });
       }
